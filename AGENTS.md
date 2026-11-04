@@ -14,6 +14,14 @@
 3. **History Independence:** The `history` microservice can **NEVER** be a secondary table or view inside another microservice; it is an independent service that builds its projection by asynchronously consuming domain events.
 4. **Operational vs. Analytical Separation (CQRS / Data Lake):** No operational microservice may use the Data Lake as a transactional database, nor can demand analytics block the critical path of reserving, starting, or completing a ride.
 
+### 1.2. Technology Stack and Programming Languages
+The system is designed as a polyglot distributed architecture. The languages and technologies used in this project vary depending on the operational domain, performance demands, and component role:
+* **Web Technologies (TypeScript, HTML, CSS):** Primarily for client applications (`apps/user-app`, `apps/maintenance-app`, `apps/operational-dashboard`), as well as TypeScript / Node.js for microservices and serverless Lambdas where appropriate.
+* **Java:** Used for robust, enterprise-grade backend microservices, data processing pipelines, and Lambdas, leveraging strong object-oriented domain modeling, concurrency, and Hexagonal Architecture.
+* **Rust:** Used for performance-critical services, high-throughput ingestion/telemetry processing, simulators, or specialized engines requiring low latency, zero-cost abstractions, high concurrency, and strict memory safety.
+
+> **Polyglot Consistency Rule:** Regardless of the chosen language (**TypeScript**, **Java**, or **Rust**), every microservice, tool, and Lambda must strictly respect the Hexagonal Architecture (Section 4), contract-first schemas (Section 3), structured logging and observability (Section 6), and test coverage requirements.
+
 ---
 
 ## 2. Component Map and Ownership by Blocks (Teams A, B, C, D)
@@ -125,7 +133,7 @@ Every mobility resource has an explicit lifecycle of **9 states**. It is forbidd
 
 ## 4. Internal Code Architecture and Rigorous Design Principles
 
-Each microservice and Lambda function must be structured following **Hexagonal Architecture (Ports & Adapters)** / **Clean Architecture**, ensuring that the domain has no knowledge whatsoever of HTTP, databases, or the AWS SDK.
+Each microservice and Lambda function must be structured following **Hexagonal Architecture (Ports & Adapters)** / **Clean Architecture**, ensuring that the domain has no knowledge whatsoever of HTTP, databases, or the AWS SDK, regardless of whether it is implemented in **Web technologies / TypeScript**, **Java**, or **Rust**.
 
 ```text
 services/<service-name>/
@@ -158,7 +166,7 @@ services/<service-name>/
    * *Forbidden:* Creating monolithic interfaces like `IVehicleManager` with 20 methods.
    * *Mandatory:* Segregate ports according to client needs: e.g., `VehicleAvailabilityReader`, `VehicleStateWriter`, `DomainEventPublisher`.
 5. **D — Dependency Inversion Principle (DIP):**
-   * The `domain` and `application` layers define the abstractions (Interfaces/Protocols/Ports).
+   * The `domain` and `application` layers define the abstractions (Interfaces/Protocols/Ports/Traits).
    * The `infrastructure` layer implements those abstractions.
    * Dependencies are injected explicitly via constructor (Constructor Dependency Injection). Instantiating database or AWS clients inside use cases is strictly forbidden.
 
