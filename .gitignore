@@ -1,0 +1,8 @@
+.idea/
+.env
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.terraform/
+*.tfstate*
