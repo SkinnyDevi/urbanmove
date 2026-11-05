@@ -1,0 +1,5 @@
+# Carpetas que genera Maven al compilar
+target/
+
+# Datos del generador: se recrean con el comando (misma semilla = mismos datos)
+synthetic-generator/out/

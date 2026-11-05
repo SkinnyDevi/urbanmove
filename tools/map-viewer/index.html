@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UrbanMove · visor de mapa</title>
+  <!-- Leaflet (mapas) desde un CDN, con versión fija y huella de integridad: si el fichero cambiara, el navegador no lo cargaría -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside id="panel">
+    <header class="brand">
+      <h1>UrbanMove</h1>
+      <p>Visor de datos del generador sintético</p>
+    </header>
+
+    <section id="loader" class="card">
+      <label class="button primary">
+        Abrir carpeta <code>out</code>
+        <input type="file" id="folder-input" webkitdirectory multiple hidden>
+      </label>
+      <label class="button secondary">
+        o elegir ficheros sueltos
+        <input type="file" id="files-input" multiple accept=".jsonl,.json,.csv" hidden>
+      </label>
+      <p class="hint">Elige la carpeta <code>tools/synthetic-generator/out</code> (genérala antes con el generador).
+        Se necesitan <code>events.jsonl</code> y <code>seed/zones.json</code>; <code>ground_truth_zone_hours.csv</code>
+        es opcional y activa los avisos de déficit.</p>
+      <p id="load-status" role="status"></p>
+    </section>
+
+    <div id="dashboard" hidden>
+      <section class="card">
+        <div class="clock">
+          <span id="clock-day"></span>
+          <strong id="clock-time"></strong>
+        </div>
+        <input type="range" id="slider" aria-label="Momento de la simulación">
+        <div class="controls">
+          <button type="button" id="back" title="Retroceder 1 hora">−1 h</button>
+          <button type="button" id="play" class="primary">▶ Reproducir</button>
+          <button type="button" id="forward" title="Avanzar 1 hora">+1 h</button>
+          <label class="speed">Velocidad
+            <select id="speed">
+              <option value="15">15 min/s</option>
+              <option value="60" selected>1 h/s</option>
+              <option value="240">4 h/s</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Flota ahora</h2>
+        <ul class="kpis" id="kpis"></ul>
+        <ul class="legend">
+          <li><span class="dot st-AVAILABLE"></span>Disponible</li>
+          <li><span class="dot st-RESERVED"></span>Reservado</li>
+          <li><span class="dot st-IN_USE"></span>En uso</li>
+          <li><span class="dot st-LOW_BATTERY"></span>Batería baja</li>
+          <li><span class="dot st-WITHDRAWN"></span>Retirado</li>
+          <li><span class="dot shape-bike"></span>Bici · <span class="dot shape-scooter"></span>Patinete</li>
+        </ul>
+      </section>
+
+      <section id="alerts" aria-live="polite"></section>
+
+      <section class="card">
+        <h2>Zonas</h2>
+        <div class="table-wrap">
+          <table id="zones-table">
+            <thead>
+              <tr><th scope="col">Zona</th><th scope="col" title="Disponibles: bicis / patinetes">Disp.</th>
+                <th scope="col" title="Reservados">Res.</th><th scope="col" title="Batería baja">Bat.</th>
+                <th scope="col" title="Retirados por mantenimiento">Ret.</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="hotspots-card" hidden>
+        <h2>Déficits de la semana</h2>
+        <p class="hint">Horas en las que se cumple la regla del enunciado: menos de 3 disponibles y más de 10 reservas o
+          viajes iniciados. Pulsa uno para ir a ese momento.</p>
+        <ul id="hotspots" class="hotspots"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Últimos eventos</h2>
+        <ol id="feed" class="feed"></ol>
+      </section>
+
+      <p class="footnote">Hora de Canarias (en noviembre coincide con UTC).</p>
+    </div>
+  </aside>
+
+  <main id="map" aria-label="Mapa de Las Palmas de Gran Canaria"></main>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+  <script src="viewer-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

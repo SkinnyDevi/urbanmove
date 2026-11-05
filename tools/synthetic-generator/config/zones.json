@@ -1,0 +1,74 @@
+[
+  {
+    "zoneId": "tafira",
+    "name": "Campus de Tafira (ULPGC)",
+    "center": { "lat": 28.0716, "lon": -15.4537 },
+    "radiusMeters": 600,
+    "capacity": 25,
+    "demandProfile": "campus",
+    "popularity": 1.2
+  },
+  {
+    "zoneId": "triana",
+    "name": "Triana",
+    "center": { "lat": 28.1037, "lon": -15.4166 },
+    "radiusMeters": 450,
+    "capacity": 20,
+    "demandProfile": "old-town",
+    "popularity": 1.0
+  },
+  {
+    "zoneId": "vegueta",
+    "name": "Vegueta",
+    "center": { "lat": 28.1003, "lon": -15.4141 },
+    "radiusMeters": 450,
+    "capacity": 15,
+    "demandProfile": "old-town",
+    "popularity": 0.7
+  },
+  {
+    "zoneId": "mesa-y-lopez",
+    "name": "Mesa y López",
+    "center": { "lat": 28.1352, "lon": -15.4335 },
+    "radiusMeters": 500,
+    "capacity": 25,
+    "demandProfile": "commercial",
+    "popularity": 1.2
+  },
+  {
+    "zoneId": "santa-catalina",
+    "name": "Santa Catalina y Puerto",
+    "center": { "lat": 28.1410, "lon": -15.4300 },
+    "radiusMeters": 500,
+    "capacity": 20,
+    "demandProfile": "commercial",
+    "popularity": 0.9
+  },
+  {
+    "zoneId": "las-canteras",
+    "name": "Playa de Las Canteras",
+    "center": { "lat": 28.1420, "lon": -15.4385 },
+    "radiusMeters": 600,
+    "capacity": 25,
+    "demandProfile": "beach",
+    "popularity": 1.1
+  },
+  {
+    "zoneId": "guanarteme",
+    "name": "Guanarteme",
+    "center": { "lat": 28.1310, "lon": -15.4465 },
+    "radiusMeters": 500,
+    "capacity": 15,
+    "demandProfile": "residential",
+    "popularity": 0.9
+  },
+  {
+    "zoneId": "siete-palmas",
+    "name": "Siete Palmas",
+    "center": { "lat": 28.1040, "lon": -15.4560 },
+    "radiusMeters": 600,
+    "capacity": 20,
+    "demandProfile": "residential",
+    "popularity": 1.0
+  }
+]
