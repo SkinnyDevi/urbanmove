@@ -1,0 +1,14 @@
+{
+  "eventId": "0b1e7a52-1c0f-4f7a-9b51-0a6f1c2d3e01",
+  "timestamp": "2026-11-15T08:55:00.000Z",
+  "source": "urbanmove.identity",
+  "eventType": "UserRegistered",
+  "schemaVersion": "1.0.0",
+  "correlationId": "7f3c2a10-4b5e-4c8d-9a1f-2e6b7c8d9e01",
+  "payload": {
+    "userId": "usr-0007",
+    "email": "laura@example.com",
+    "fullName": "Laura Santana",
+    "role": "user"
+  }
+}

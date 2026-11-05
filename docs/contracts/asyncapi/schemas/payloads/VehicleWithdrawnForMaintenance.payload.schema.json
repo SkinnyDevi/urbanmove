@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleWithdrawnForMaintenance · payload",
+  "description": "Vehículo retirado de la calle; availability lo pasa a WITHDRAWN.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "vehicleId",
+    "vehicleType",
+    "maintenanceOrderId",
+    "reason",
+    "zoneId"
+  ],
+  "properties": {
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "maintenanceOrderId": {
+      "type": "string",
+      "description": "Orden de mantenimiento",
+      "pattern": "^mnt-[a-z0-9-]+$"
+    },
+    "reason": {
+      "$ref": "../common.schema.json#/$defs/maintenanceReason"
+    },
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "technicianId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReservationExpired · payload",
+  "description": "Reserva liberada por timeout. La Lambda reservation-expiration la dispara; ver decisión abierta 1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reservationId",
+    "vehicleId",
+    "vehicleType",
+    "userId",
+    "zoneId",
+    "reservedAt",
+    "expiredAt"
+  ],
+  "properties": {
+    "reservationId": {
+      "type": "string",
+      "description": "Identificador de la reserva",
+      "pattern": "^res-[a-z0-9-]+$"
+    },
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "reservedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que se creó la reserva"
+    },
+    "expiredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que se dio por caducada"
+    }
+  }
+}

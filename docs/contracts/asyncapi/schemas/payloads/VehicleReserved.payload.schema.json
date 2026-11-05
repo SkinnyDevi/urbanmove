@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleReserved · payload",
+  "description": "Reserva creada sobre un vehículo disponible; availability lo pasa a RESERVED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reservationId",
+    "vehicleId",
+    "vehicleType",
+    "userId",
+    "zoneId",
+    "expiresAt"
+  ],
+  "properties": {
+    "reservationId": {
+      "type": "string",
+      "description": "Identificador de la reserva",
+      "pattern": "^res-[a-z0-9-]+$"
+    },
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que la reserva caduca si no se usa"
+    }
+  }
+}

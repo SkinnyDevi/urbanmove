@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RideFinished · payload",
+  "description": "Fin del viaje; availability libera el vehículo en la zona de destino.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rideId",
+    "vehicleId",
+    "vehicleType",
+    "userId",
+    "originZoneId",
+    "destinationZoneId",
+    "startedAt",
+    "finishedAt",
+    "durationSeconds",
+    "preliminaryCost"
+  ],
+  "properties": {
+    "rideId": {
+      "type": "string",
+      "description": "Identificador del viaje",
+      "pattern": "^ride-[a-z0-9-]+$"
+    },
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "originZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "destinationZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Inicio del viaje"
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fin del viaje"
+    },
+    "durationSeconds": {
+      "type": "integer",
+      "description": "Duración en segundos",
+      "minimum": 0
+    },
+    "distanceKm": {
+      "type": "number",
+      "description": "Distancia aproximada",
+      "minimum": 0
+    },
+    "preliminaryCost": {
+      "$ref": "../common.schema.json#/$defs/money"
+    }
+  }
+}

@@ -1,0 +1,303 @@
+# Generado a partir de la definición única de eventos. Editar con cuidado: es un contrato.
+asyncapi: 3.0.0
+info:
+  title: UrbanMove · eventos de dominio
+  version: 1.0.0
+  description: 'Catálogo cerrado de los 13 eventos de dominio. Bus: SNS + SQS con DLQ (ADR-002). Todos los mensajes
+    usan el envelope común de schemas/envelope.schema.json.'
+defaultContentType: application/json
+channels:
+  domainEvents:
+    address: urbanmove-domain-events
+    title: Topic SNS de eventos de dominio
+    description: Topic único. Cada consumidor tiene su cola SQS suscrita con filtro por eventType y su DLQ (maxReceiveCount
+      = 3). Ver decisión abierta 3.
+    messages:
+      UserRegistered:
+        $ref: '#/components/messages/UserRegistered'
+      VehiclePurchased:
+        $ref: '#/components/messages/VehiclePurchased'
+      VehicleReserved:
+        $ref: '#/components/messages/VehicleReserved'
+      ReservationCancelled:
+        $ref: '#/components/messages/ReservationCancelled'
+      ReservationExpired:
+        $ref: '#/components/messages/ReservationExpired'
+      RideStarted:
+        $ref: '#/components/messages/RideStarted'
+      RideFinished:
+        $ref: '#/components/messages/RideFinished'
+      VehicleBatteryLow:
+        $ref: '#/components/messages/VehicleBatteryLow'
+      VehicleWithdrawnForMaintenance:
+        $ref: '#/components/messages/VehicleWithdrawnForMaintenance'
+      VehicleReturnedToService:
+        $ref: '#/components/messages/VehicleReturnedToService'
+      DemandHotspotDetected:
+        $ref: '#/components/messages/DemandHotspotDetected'
+      RelocationOrderCreated:
+        $ref: '#/components/messages/RelocationOrderCreated'
+      RelocationOrderCompleted:
+        $ref: '#/components/messages/RelocationOrderCompleted'
+operations:
+  publishUserRegistered:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.identity publica UserRegistered
+    messages:
+    - $ref: '#/channels/domainEvents/messages/UserRegistered'
+  publishVehiclePurchased:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.acquisitions publica VehiclePurchased
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehiclePurchased'
+  publishVehicleReserved:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.reservations publica VehicleReserved
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehicleReserved'
+  publishReservationCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.reservations publica ReservationCancelled
+    messages:
+    - $ref: '#/channels/domainEvents/messages/ReservationCancelled'
+  publishReservationExpired:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.reservations publica ReservationExpired
+    messages:
+    - $ref: '#/channels/domainEvents/messages/ReservationExpired'
+  publishRideStarted:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.rides publica RideStarted
+    messages:
+    - $ref: '#/channels/domainEvents/messages/RideStarted'
+  publishRideFinished:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.rides publica RideFinished
+    messages:
+    - $ref: '#/channels/domainEvents/messages/RideFinished'
+  publishVehicleBatteryLow:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.telemetry publica VehicleBatteryLow
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehicleBatteryLow'
+  publishVehicleWithdrawnForMaintenance:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.maintenance publica VehicleWithdrawnForMaintenance
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehicleWithdrawnForMaintenance'
+  publishVehicleReturnedToService:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.maintenance publica VehicleReturnedToService
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehicleReturnedToService'
+  publishDemandHotspotDetected:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.relocation-engine publica DemandHotspotDetected
+    messages:
+    - $ref: '#/channels/domainEvents/messages/DemandHotspotDetected'
+  publishRelocationOrderCreated:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.relocation publica RelocationOrderCreated
+    messages:
+    - $ref: '#/channels/domainEvents/messages/RelocationOrderCreated'
+  publishRelocationOrderCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.relocation publica RelocationOrderCompleted
+    messages:
+    - $ref: '#/channels/domainEvents/messages/RelocationOrderCompleted'
+components:
+  messages:
+    UserRegistered:
+      name: UserRegistered
+      title: UserRegistered
+      summary: Alta de usuario; profiles crea el perfil a partir de este evento.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/UserRegistered.message.schema.json
+      x-producer: urbanmove.identity
+      x-consumers:
+      - profiles
+      - notifications
+      - analytics-ingestion
+    VehiclePurchased:
+      name: VehiclePurchased
+      title: VehiclePurchased
+      summary: Incorporación de un vehículo nuevo; inventory lo registra como activo.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehiclePurchased.message.schema.json
+      x-producer: urbanmove.acquisitions
+      x-consumers:
+      - inventory
+      - availability
+      - telemetry
+      - history
+      - analytics-ingestion
+    VehicleReserved:
+      name: VehicleReserved
+      title: VehicleReserved
+      summary: Reserva creada sobre un vehículo disponible; availability lo pasa a RESERVED.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehicleReserved.message.schema.json
+      x-producer: urbanmove.reservations
+      x-consumers:
+      - availability
+      - history
+      - notifications
+      - analytics-ingestion
+    ReservationCancelled:
+      name: ReservationCancelled
+      title: ReservationCancelled
+      summary: Reserva cancelada por el usuario; el vehículo vuelve a AVAILABLE.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/ReservationCancelled.message.schema.json
+      x-producer: urbanmove.reservations
+      x-consumers:
+      - availability
+      - history
+      - notifications
+      - analytics-ingestion
+    ReservationExpired:
+      name: ReservationExpired
+      title: ReservationExpired
+      summary: Reserva liberada por timeout. La Lambda reservation-expiration la dispara; ver decisión abierta 1.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/ReservationExpired.message.schema.json
+      x-producer: urbanmove.reservations
+      x-consumers:
+      - availability
+      - history
+      - notifications
+      - analytics-ingestion
+    RideStarted:
+      name: RideStarted
+      title: RideStarted
+      summary: Inicio de uso; availability pasa el vehículo a IN_USE.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/RideStarted.message.schema.json
+      x-producer: urbanmove.rides
+      x-consumers:
+      - availability
+      - telemetry
+      - history
+      - analytics-ingestion
+    RideFinished:
+      name: RideFinished
+      title: RideFinished
+      summary: Fin del viaje; availability libera el vehículo en la zona de destino.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/RideFinished.message.schema.json
+      x-producer: urbanmove.rides
+      x-consumers:
+      - availability
+      - telemetry
+      - history
+      - notifications
+      - analytics-ingestion
+    VehicleBatteryLow:
+      name: VehicleBatteryLow
+      title: VehicleBatteryLow
+      summary: Batería por debajo del umbral; la Lambda maintenance-detection crea la orden.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehicleBatteryLow.message.schema.json
+      x-producer: urbanmove.telemetry
+      x-consumers:
+      - maintenance-detection
+      - availability
+      - history
+      - analytics-ingestion
+    VehicleWithdrawnForMaintenance:
+      name: VehicleWithdrawnForMaintenance
+      title: VehicleWithdrawnForMaintenance
+      summary: Vehículo retirado de la calle; availability lo pasa a WITHDRAWN.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehicleWithdrawnForMaintenance.message.schema.json
+      x-producer: urbanmove.maintenance
+      x-consumers:
+      - availability
+      - history
+      - notifications
+      - analytics-ingestion
+    VehicleReturnedToService:
+      name: VehicleReturnedToService
+      title: VehicleReturnedToService
+      summary: Vehículo listo y de vuelta en la calle; telemetry reinicia contadores de uso.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehicleReturnedToService.message.schema.json
+      x-producer: urbanmove.maintenance
+      x-consumers:
+      - availability
+      - telemetry
+      - history
+      - analytics-ingestion
+    DemandHotspotDetected:
+      name: DemandHotspotDetected
+      title: DemandHotspotDetected
+      summary: La Lambda relocation-engine detecta déficit con dm_demand y propone origen y cantidad.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/DemandHotspotDetected.message.schema.json
+      x-producer: urbanmove.relocation-engine
+      x-consumers:
+      - relocation
+      - notifications
+      - analytics-ingestion
+    RelocationOrderCreated:
+      name: RelocationOrderCreated
+      title: RelocationOrderCreated
+      summary: El servicio relocation crea la orden a partir del hotspot.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/RelocationOrderCreated.message.schema.json
+      x-producer: urbanmove.relocation
+      x-consumers:
+      - notifications
+      - history
+      - analytics-ingestion
+    RelocationOrderCompleted:
+      name: RelocationOrderCompleted
+      title: RelocationOrderCompleted
+      summary: Orden completada; availability actualiza la zona de los vehículos movidos.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/RelocationOrderCompleted.message.schema.json
+      x-producer: urbanmove.relocation
+      x-consumers:
+      - availability
+      - history
+      - notifications
+      - analytics-ingestion

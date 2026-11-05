@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UrbanMove · envelope común de eventos",
+  "description": "Formato obligatorio de TODO evento publicado (AGENTS.md 3.2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "timestamp",
+    "source",
+    "eventType",
+    "schemaVersion",
+    "correlationId",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 único del evento. Clave de idempotencia."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que ocurrió el hecho, UTC ISO-8601."
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^urbanmove\\.[a-z-]+$",
+      "description": "Productor: urbanmove.<servicio-o-lambda>"
+    },
+    "eventType": {
+      "type": "string",
+      "description": "Uno de los 13 eventos del catálogo cerrado",
+      "enum": [
+        "UserRegistered",
+        "VehiclePurchased",
+        "VehicleReserved",
+        "ReservationCancelled",
+        "ReservationExpired",
+        "RideStarted",
+        "RideFinished",
+        "VehicleBatteryLow",
+        "VehicleWithdrawnForMaintenance",
+        "VehicleReturnedToService",
+        "DemandHotspotDetected",
+        "RelocationOrderCreated",
+        "RelocationOrderCompleted"
+      ]
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Versión semántica del esquema del payload"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID v4 que sigue un flujo completo de extremo a extremo"
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "eventId": "afbc7efc-b0ad-4d14-9f5b-ae6dba2b3c11",
+  "timestamp": "2026-11-16T08:00:00.000Z",
+  "source": "urbanmove.relocation-engine",
+  "eventType": "DemandHotspotDetected",
+  "schemaVersion": "1.0.0",
+  "correlationId": "c0ffee00-1234-4abc-9def-556677889900",
+  "payload": {
+    "zoneId": "tafira",
+    "vehicleType": "SCOOTER",
+    "timeSlot": {
+      "start": "2026-11-16T07:00:00.000Z",
+      "end": "2026-11-16T08:00:00.000Z"
+    },
+    "availableVehicles": 2,
+    "demandSignals": 14,
+    "strategy": "THRESHOLD_RULE",
+    "suggestedSourceZoneId": "las-canteras",
+    "suggestedQuantity": 5
+  }
+}

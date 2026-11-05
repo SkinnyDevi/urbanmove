@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DemandHotspotDetected · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "DemandHotspotDetected"
+        },
+        "source": {
+          "const": "urbanmove.relocation-engine"
+        },
+        "payload": {
+          "$ref": "../payloads/DemandHotspotDetected.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

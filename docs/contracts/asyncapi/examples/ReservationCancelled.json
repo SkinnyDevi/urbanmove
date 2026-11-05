@@ -1,0 +1,16 @@
+{
+  "eventId": "3e4b0d85-4f3c-4cad-8e84-3d9c4f5a6b04",
+  "timestamp": "2026-11-15T09:20:00.000Z",
+  "source": "urbanmove.reservations",
+  "eventType": "ReservationCancelled",
+  "schemaVersion": "1.0.0",
+  "correlationId": "5d6e7f80-9a0b-4c1d-8e2f-3a4b5c6d7e8f",
+  "payload": {
+    "reservationId": "res-0124",
+    "vehicleId": "veh-0051",
+    "vehicleType": "BIKE",
+    "userId": "usr-0011",
+    "zoneId": "triana",
+    "reason": "He cambiado de planes"
+  }
+}

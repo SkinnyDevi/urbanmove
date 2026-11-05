@@ -1,0 +1,16 @@
+{
+  "eventId": "2d3a9c74-3e2b-4b9c-9d73-2c8b3e4f5a03",
+  "timestamp": "2026-11-15T09:00:00.000Z",
+  "source": "urbanmove.reservations",
+  "eventType": "VehicleReserved",
+  "schemaVersion": "1.0.0",
+  "correlationId": "7f3c2a10-4b5e-4c8d-9a1f-2e6b7c8d9e01",
+  "payload": {
+    "reservationId": "res-0123",
+    "vehicleId": "veh-0042",
+    "vehicleType": "SCOOTER",
+    "userId": "usr-0007",
+    "zoneId": "tafira",
+    "expiresAt": "2026-11-15T09:15:00.000Z"
+  }
+}

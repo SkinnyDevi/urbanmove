@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReservationExpired · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "ReservationExpired"
+        },
+        "source": {
+          "const": "urbanmove.reservations"
+        },
+        "payload": {
+          "$ref": "../payloads/ReservationExpired.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RelocationOrderCreated · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "RelocationOrderCreated"
+        },
+        "source": {
+          "const": "urbanmove.relocation"
+        },
+        "payload": {
+          "$ref": "../payloads/RelocationOrderCreated.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

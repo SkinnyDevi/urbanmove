@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RideStarted · payload",
+  "description": "Inicio de uso; availability pasa el vehículo a IN_USE.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rideId",
+    "vehicleId",
+    "vehicleType",
+    "userId",
+    "reservationId",
+    "originZoneId",
+    "startedAt"
+  ],
+  "properties": {
+    "rideId": {
+      "type": "string",
+      "description": "Identificador del viaje",
+      "pattern": "^ride-[a-z0-9-]+$"
+    },
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "reservationId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Reserva de origen, o null si se cogió sin reservar"
+    },
+    "originZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Inicio del viaje"
+    }
+  }
+}

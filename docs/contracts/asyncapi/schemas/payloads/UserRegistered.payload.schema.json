@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UserRegistered · payload",
+  "description": "Alta de usuario; profiles crea el perfil a partir de este evento.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "userId",
+    "email",
+    "fullName",
+    "role"
+  ],
+  "properties": {
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email del usuario",
+      "format": "email"
+    },
+    "fullName": {
+      "type": "string",
+      "description": "Nombre completo",
+      "minLength": 1
+    },
+    "role": {
+      "$ref": "../common.schema.json#/$defs/role"
+    }
+  }
+}

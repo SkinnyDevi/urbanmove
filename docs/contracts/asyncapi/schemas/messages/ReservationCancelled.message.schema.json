@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReservationCancelled · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "ReservationCancelled"
+        },
+        "source": {
+          "const": "urbanmove.reservations"
+        },
+        "payload": {
+          "$ref": "../payloads/ReservationCancelled.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

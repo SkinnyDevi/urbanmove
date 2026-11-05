@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehiclePurchased · payload",
+  "description": "Incorporación de un vehículo nuevo; inventory lo registra como activo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "vehicleId",
+    "vehicleType",
+    "model",
+    "purchaseDate",
+    "initialZoneId"
+  ],
+  "properties": {
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "model": {
+      "type": "string",
+      "description": "Modelo comercial",
+      "minLength": 1
+    },
+    "purchaseDate": {
+      "type": "string",
+      "description": "Fecha de compra",
+      "format": "date"
+    },
+    "purchasePrice": {
+      "$ref": "../common.schema.json#/$defs/money"
+    },
+    "initialZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    }
+  }
+}

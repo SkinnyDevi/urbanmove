@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RelocationOrderCreated · payload",
+  "description": "El servicio relocation crea la orden a partir del hotspot.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "relocationOrderId",
+    "sourceZoneId",
+    "targetZoneId",
+    "vehicleType",
+    "quantity",
+    "strategy"
+  ],
+  "properties": {
+    "relocationOrderId": {
+      "type": "string",
+      "description": "Orden de recolocación",
+      "pattern": "^rel-[a-z0-9-]+$"
+    },
+    "sourceZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "targetZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Vehículos a mover",
+      "minimum": 1
+    },
+    "strategy": {
+      "$ref": "../common.schema.json#/$defs/relocationStrategy"
+    },
+    "triggeredByEventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "eventId del DemandHotspotDetected que la originó"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RelocationOrderCompleted · payload",
+  "description": "Orden completada; availability actualiza la zona de los vehículos movidos.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "relocationOrderId",
+    "sourceZoneId",
+    "targetZoneId",
+    "vehicleType",
+    "vehicleIds",
+    "createdAt",
+    "completedAt",
+    "delaySeconds"
+  ],
+  "properties": {
+    "relocationOrderId": {
+      "type": "string",
+      "description": "Orden de recolocación",
+      "pattern": "^rel-[a-z0-9-]+$"
+    },
+    "sourceZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "targetZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "vehicleIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "../common.schema.json#/$defs/vehicleId"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creación de la orden"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Finalización de la orden"
+    },
+    "delaySeconds": {
+      "type": "integer",
+      "description": "Retraso respecto al plazo objetivo (0 si a tiempo)",
+      "minimum": 0
+    }
+  }
+}

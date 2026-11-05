@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UrbanMove · tipos comunes",
+  "$defs": {
+    "vehicleId": {
+      "type": "string",
+      "pattern": "^veh-[a-z0-9-]+$",
+      "description": "Identificador del vehículo"
+    },
+    "userId": {
+      "type": "string",
+      "pattern": "^usr-[a-z0-9-]+$",
+      "description": "Identificador del usuario"
+    },
+    "zoneId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Identificador de zona (propiedad del servicio zones)"
+    },
+    "vehicleType": {
+      "type": "string",
+      "enum": [
+        "BIKE",
+        "SCOOTER"
+      ],
+      "description": "Tipo de vehículo"
+    },
+    "vehicleState": {
+      "type": "string",
+      "enum": [
+        "AVAILABLE",
+        "RESERVED",
+        "IN_USE",
+        "LOW_BATTERY",
+        "WITHDRAWN",
+        "CHARGING",
+        "REPAIRING",
+        "READY_FOR_SERVICE",
+        "RETIRED"
+      ],
+      "description": "Los 9 estados oficiales del vehículo (AGENTS.md 3.4)"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "maintenance",
+        "admin"
+      ]
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "const": "EUR"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        }
+      }
+    },
+    "timeSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "relocationStrategy": {
+      "type": "string",
+      "enum": [
+        "THRESHOLD_RULE",
+        "PREDICTIVE_MODEL"
+      ]
+    },
+    "maintenanceReason": {
+      "type": "string",
+      "enum": [
+        "LOW_BATTERY",
+        "BREAKDOWN",
+        "EXCESS_USAGE",
+        "INSPECTION",
+        "VANDALISM"
+      ]
+    },
+    "maintenanceWork": {
+      "type": "string",
+      "enum": [
+        "RECHARGE",
+        "REPAIR",
+        "INSPECTION"
+      ]
+    }
+  }
+}

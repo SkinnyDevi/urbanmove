@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleBatteryLow · payload",
+  "description": "Batería por debajo del umbral; la Lambda maintenance-detection crea la orden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "vehicleId",
+    "vehicleType",
+    "batteryLevel",
+    "threshold",
+    "zoneId"
+  ],
+  "properties": {
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "batteryLevel": {
+      "type": "integer",
+      "description": "Porcentaje de batería",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "threshold": {
+      "type": "integer",
+      "description": "Umbral configurado que se ha cruzado",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "location": {
+      "$ref": "../common.schema.json#/$defs/location"
+    }
+  }
+}

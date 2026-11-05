@@ -1,0 +1,19 @@
+{
+  "eventId": "7c8f4bc9-8d7a-4ae1-8c28-7b3a8d9e0f08",
+  "timestamp": "2026-11-15T09:28:00.000Z",
+  "source": "urbanmove.telemetry",
+  "eventType": "VehicleBatteryLow",
+  "schemaVersion": "1.0.0",
+  "correlationId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "payload": {
+    "vehicleId": "veh-0042",
+    "vehicleType": "SCOOTER",
+    "batteryLevel": 12,
+    "threshold": 15,
+    "zoneId": "mesa-y-lopez",
+    "location": {
+      "lat": 28.1365,
+      "lon": -15.4369
+    }
+  }
+}

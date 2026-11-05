@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DemandHotspotDetected · payload",
+  "description": "La Lambda relocation-engine detecta déficit con dm_demand y propone origen y cantidad.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "zoneId",
+    "vehicleType",
+    "timeSlot",
+    "availableVehicles",
+    "demandSignals",
+    "strategy",
+    "suggestedSourceZoneId",
+    "suggestedQuantity"
+  ],
+  "properties": {
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "timeSlot": {
+      "$ref": "../common.schema.json#/$defs/timeSlot"
+    },
+    "availableVehicles": {
+      "type": "integer",
+      "description": "Vehículos disponibles en la zona",
+      "minimum": 0
+    },
+    "demandSignals": {
+      "type": "integer",
+      "description": "Intentos de reserva + viajes iniciados en la ventana",
+      "minimum": 0
+    },
+    "strategy": {
+      "$ref": "../common.schema.json#/$defs/relocationStrategy"
+    },
+    "suggestedSourceZoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "suggestedQuantity": {
+      "type": "integer",
+      "description": "Vehículos a mover",
+      "minimum": 1
+    }
+  }
+}

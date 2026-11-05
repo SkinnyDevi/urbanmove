@@ -1,0 +1,19 @@
+{
+  "eventId": "1c2f8b63-2d1a-4a8b-8c62-1b7a2d3e4f02",
+  "timestamp": "2026-11-02T10:00:00.000Z",
+  "source": "urbanmove.acquisitions",
+  "eventType": "VehiclePurchased",
+  "schemaVersion": "1.0.0",
+  "correlationId": "5d6e7f80-9a0b-4c1d-8e2f-3a4b5c6d7e8f",
+  "payload": {
+    "vehicleId": "veh-0042",
+    "vehicleType": "SCOOTER",
+    "model": "Segway Ninebot Max G30",
+    "purchaseDate": "2026-11-02",
+    "purchasePrice": {
+      "amount": 649.0,
+      "currency": "EUR"
+    },
+    "initialZoneId": "tafira"
+  }
+}

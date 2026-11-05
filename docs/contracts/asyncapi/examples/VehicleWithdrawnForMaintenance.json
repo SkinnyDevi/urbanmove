@@ -1,0 +1,16 @@
+{
+  "eventId": "8d9a5cda-9e8b-4bf2-9d39-8c4b9e0f1a09",
+  "timestamp": "2026-11-15T10:10:00.000Z",
+  "source": "urbanmove.maintenance",
+  "eventType": "VehicleWithdrawnForMaintenance",
+  "schemaVersion": "1.0.0",
+  "correlationId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "payload": {
+    "vehicleId": "veh-0042",
+    "vehicleType": "SCOOTER",
+    "maintenanceOrderId": "mnt-0031",
+    "reason": "LOW_BATTERY",
+    "zoneId": "mesa-y-lopez",
+    "technicianId": "usr-tech-02"
+  }
+}

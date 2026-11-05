@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleReturnedToService · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "VehicleReturnedToService"
+        },
+        "source": {
+          "const": "urbanmove.maintenance"
+        },
+        "payload": {
+          "$ref": "../payloads/VehicleReturnedToService.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

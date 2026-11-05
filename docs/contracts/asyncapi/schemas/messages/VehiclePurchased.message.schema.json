@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehiclePurchased · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "VehiclePurchased"
+        },
+        "source": {
+          "const": "urbanmove.acquisitions"
+        },
+        "payload": {
+          "$ref": "../payloads/VehiclePurchased.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

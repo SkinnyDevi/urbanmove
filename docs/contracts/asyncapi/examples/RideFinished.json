@@ -1,0 +1,24 @@
+{
+  "eventId": "6b7e3ab8-7c6f-4fd0-9b17-6a2f7c8d9e07",
+  "timestamp": "2026-11-15T09:27:30.000Z",
+  "source": "urbanmove.rides",
+  "eventType": "RideFinished",
+  "schemaVersion": "1.0.0",
+  "correlationId": "7f3c2a10-4b5e-4c8d-9a1f-2e6b7c8d9e01",
+  "payload": {
+    "rideId": "ride-0456",
+    "vehicleId": "veh-0042",
+    "vehicleType": "SCOOTER",
+    "userId": "usr-0007",
+    "originZoneId": "tafira",
+    "destinationZoneId": "mesa-y-lopez",
+    "startedAt": "2026-11-15T09:05:00.000Z",
+    "finishedAt": "2026-11-15T09:27:30.000Z",
+    "durationSeconds": 1350,
+    "distanceKm": 6.4,
+    "preliminaryCost": {
+      "amount": 4.88,
+      "currency": "EUR"
+    }
+  }
+}

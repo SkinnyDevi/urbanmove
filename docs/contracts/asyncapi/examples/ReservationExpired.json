@@ -1,0 +1,17 @@
+{
+  "eventId": "4f5c1e96-5a4d-4dbe-9f95-4e0d5a6b7c05",
+  "timestamp": "2026-11-15T18:15:00.000Z",
+  "source": "urbanmove.reservations",
+  "eventType": "ReservationExpired",
+  "schemaVersion": "1.0.0",
+  "correlationId": "5d6e7f80-9a0b-4c1d-8e2f-3a4b5c6d7e8f",
+  "payload": {
+    "reservationId": "res-0125",
+    "vehicleId": "veh-0063",
+    "vehicleType": "SCOOTER",
+    "userId": "usr-0019",
+    "zoneId": "las-canteras",
+    "reservedAt": "2026-11-15T18:00:00.000Z",
+    "expiredAt": "2026-11-15T18:15:00.000Z"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleBatteryLow · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "VehicleBatteryLow"
+        },
+        "source": {
+          "const": "urbanmove.telemetry"
+        },
+        "payload": {
+          "$ref": "../payloads/VehicleBatteryLow.payload.schema.json"
+        }
+      }
+    }
+  ]
+}

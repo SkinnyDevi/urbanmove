@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReservationCancelled · payload",
+  "description": "Reserva cancelada por el usuario; el vehículo vuelve a AVAILABLE.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reservationId",
+    "vehicleId",
+    "vehicleType",
+    "userId",
+    "zoneId"
+  ],
+  "properties": {
+    "reservationId": {
+      "type": "string",
+      "description": "Identificador de la reserva",
+      "pattern": "^res-[a-z0-9-]+$"
+    },
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "userId": {
+      "$ref": "../common.schema.json#/$defs/userId"
+    },
+    "zoneId": {
+      "$ref": "../common.schema.json#/$defs/zoneId"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo opcional indicado por el usuario",
+      "maxLength": 280
+    }
+  }
+}
