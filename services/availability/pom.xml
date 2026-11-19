@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Servicio availability (bloque B): qué vehículos se pueden reservar ahora y en qué zona.
+  Es el dueño del estado operativo del vehículo que ve el resto del sistema.
+  Por ahora solo contiene el dominio (Java puro, sin framework).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.urbanmove</groupId>
+    <artifactId>urbanmove-services</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>availability</artifactId>
+  <name>UrbanMove · availability</name>
+</project>
