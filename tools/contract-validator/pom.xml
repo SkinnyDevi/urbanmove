@@ -44,6 +44,12 @@
       <artifactId>snakeyaml</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Solo para los tests de los contratos REST (docs/contracts/openapi) -->
+    <dependency>
+      <groupId>io.swagger.parser.v3</groupId>
+      <artifactId>swagger-parser</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

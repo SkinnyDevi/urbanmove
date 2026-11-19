@@ -1,0 +1,251 @@
+openapi: 3.1.0
+info:
+  title: UrbanMove · relocation
+  version: 1.0.0
+  description: >
+    Bloque B. Órdenes para mover vehículos entre zonas.
+
+    Ciclo de la orden: CREATED → ASSIGNED → IN_PROGRESS → COMPLETED, o CANCELLED antes de empezar.
+
+    Eventos consumidos: DemandHotspotDetected (de la Lambda relocation-engine). Cada evento crea como
+    mucho una orden; el eventId se guarda en triggeredByEventId y sirve de clave de idempotencia.
+    Eventos publicados: RelocationOrderCreated (al crear) y RelocationOrderCompleted (al completar;
+    availability actualiza la zona de los vehículos movidos).
+servers:
+  - url: http://localhost:8085
+    description: Local (docker-compose)
+security:
+  - bearerJwt: []
+tags:
+  - name: orders
+  - name: actions
+  - name: health
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      security: []
+      responses:
+        '200': { $ref: './common.yaml#/components/responses/Health' }
+        '503': { $ref: './common.yaml#/components/responses/Unhealthy' }
+
+  /relocation-orders:
+    get:
+      tags: [orders]
+      operationId: listRelocationOrders
+      summary: Lista órdenes (bandeja de la app de mantenimiento y dashboard)
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - name: status
+          in: query
+          style: form
+          explode: false
+          description: Uno o varios estados separados por comas.
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/OrderStatus' }
+        - name: sourceZoneId
+          in: query
+          schema: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        - name: targetZoneId
+          in: query
+          schema: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        - name: assigneeId
+          in: query
+          schema: { $ref: './common.yaml#/components/schemas/UserId' }
+        - $ref: './common.yaml#/components/parameters/Limit'
+        - $ref: './common.yaml#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de órdenes, las de plazo más próximo primero.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './common.yaml#/components/schemas/PageInfo'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/RelocationOrder' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+
+  /relocation-orders/{orderId}:
+    get:
+      tags: [orders]
+      operationId: getRelocationOrder
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/Order' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+
+  /relocation-orders/{orderId}/assign:
+    post:
+      tags: [actions]
+      operationId: assignRelocationOrder
+      summary: CREATED → ASSIGNED
+      description: 'Roles: maintenance. El técnico que la coge es el `sub` del JWT.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: &actionResponses
+        '200': { $ref: '#/components/responses/Order' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+        '409': { $ref: './common.yaml#/components/responses/InvalidStateTransition' }
+
+  /relocation-orders/{orderId}/start:
+    post:
+      tags: [actions]
+      operationId: startRelocationOrder
+      summary: ASSIGNED → IN_PROGRESS
+      description: 'Roles: maintenance. Solo el técnico asignado.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: *actionResponses
+
+  /relocation-orders/{orderId}/complete:
+    post:
+      tags: [actions]
+      operationId: completeRelocationOrder
+      summary: IN_PROGRESS → COMPLETED. Publica RelocationOrderCompleted.
+      description: >
+        Roles: maintenance. Solo el técnico asignado. Se indican los vehículos movidos
+        (entre 1 y quantity, del tipo de la orden).
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [vehicleIds]
+              properties:
+                vehicleIds:
+                  type: array
+                  minItems: 1
+                  uniqueItems: true
+                  items: { $ref: './common.yaml#/components/schemas/VehicleId' }
+      responses: *actionResponses
+
+  /relocation-orders/{orderId}/cancel:
+    post:
+      tags: [actions]
+      operationId: cancelRelocationOrder
+      summary: CREATED | ASSIGNED → CANCELLED
+      description: 'Roles: admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+      responses: *actionResponses
+
+components:
+  securitySchemes:
+    bearerJwt: { $ref: './common.yaml#/components/securitySchemes/bearerJwt' }
+
+  parameters:
+    OrderIdPath:
+      name: orderId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/RelocationOrderId' }
+
+  responses:
+    Order:
+      description: La orden en su estado actual.
+      headers:
+        X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/RelocationOrder' }
+
+  schemas:
+    RelocationOrderId:
+      type: string
+      pattern: '^rel-[a-z0-9-]+$'
+    OrderStatus:
+      type: string
+      enum: [CREATED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED]
+    RelocationOrder:
+      type: object
+      additionalProperties: false
+      required: [relocationOrderId, sourceZoneId, targetZoneId, vehicleType, quantity, strategy, status, createdAt, dueAt]
+      properties:
+        relocationOrderId: { $ref: '#/components/schemas/RelocationOrderId' }
+        sourceZoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        targetZoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        quantity:
+          type: integer
+          minimum: 1
+        strategy:
+          $ref: '../asyncapi/schemas/common.schema.json#/$defs/relocationStrategy'
+        triggeredByEventId:
+          type: [string, 'null']
+          format: uuid
+          description: eventId del DemandHotspotDetected que la originó.
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        assigneeId:
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/UserId'
+            - type: 'null'
+        vehicleIds:
+          type: array
+          uniqueItems: true
+          description: Vehículos movidos; vacío hasta completar.
+          items: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        createdAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+          description: Plazo objetivo. delaySeconds se mide contra él (dm_operations).
+        startedAt:
+          type: [string, 'null']
+          format: date-time
+        completedAt:
+          type: [string, 'null']
+          format: date-time
+        delaySeconds:
+          type: [integer, 'null']
+          minimum: 0
+          description: Retraso respecto a dueAt (0 si a tiempo). Solo en COMPLETED.
+        cancellationReason:
+          type: [string, 'null']

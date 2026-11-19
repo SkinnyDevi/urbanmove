@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: UrbanMove · availability
+  version: 1.0.0
+  description: >
+    Bloque B. Qué vehículos se pueden reservar ahora y en qué zona. Es el dueño del estado operativo
+    del vehículo (AVAILABLE, RESERVED, IN_USE, LOW_BATTERY, WITHDRAWN, RETIRED); ver
+    docs/architecture/vehicle-state-machine.md.
+
+    Es una proyección de solo lectura por REST: el estado cambia únicamente al consumir eventos.
+    Eventos consumidos: VehiclePurchased, VehicleReserved, ReservationCancelled, ReservationExpired,
+    RideStarted, RideFinished, VehicleBatteryLow, VehicleWithdrawnForMaintenance,
+    VehicleReturnedToService, RelocationOrderCompleted. Eventos publicados: ninguno.
+
+    Pendiente con el bloque A (decisión abierta 2): cómo se evita la doble reserva. Si se decide que
+    reservations bloquee el vehículo de forma síncrona, aquí se añadirá una operación con bloqueo
+    optimista e Idempotency-Key.
+servers:
+  - url: http://localhost:8082
+    description: Local (docker-compose)
+security:
+  - bearerJwt: []
+tags:
+  - name: availability
+  - name: health
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      security: []
+      responses:
+        '200': { $ref: './common.yaml#/components/responses/Health' }
+        '503': { $ref: './common.yaml#/components/responses/Unhealthy' }
+
+  /availability/vehicles:
+    get:
+      tags: [availability]
+      operationId: listVehicleAvailability
+      summary: Vehículos por zona, tipo y estado
+      description: >
+        Roles: user, maintenance, admin. Con rol user solo se devuelven vehículos AVAILABLE
+        (el filtro status se ignora). Lo usa la app de usuario para elegir qué reservar.
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/ZoneIdQuery'
+        - $ref: './common.yaml#/components/parameters/VehicleTypeQuery'
+        - name: status
+          in: query
+          description: Por defecto AVAILABLE.
+          schema: { $ref: '#/components/schemas/OperationalStatus' }
+        - $ref: './common.yaml#/components/parameters/Limit'
+        - $ref: './common.yaml#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de vehículos.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './common.yaml#/components/schemas/PageInfo'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/VehicleAvailability' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+
+  /availability/vehicles/{vehicleId}:
+    get:
+      tags: [availability]
+      operationId: getVehicleAvailability
+      description: 'Roles: user, maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/VehicleIdPath'
+      responses:
+        '200':
+          description: Estado operativo actual del vehículo.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VehicleAvailability' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+
+  /availability/zones/summary:
+    get:
+      tags: [availability]
+      operationId: getZoneAvailabilitySummary
+      summary: Recuento de vehículos por zona, tipo y estado
+      description: >
+        Roles: maintenance, admin. Para la app de mantenimiento y el dashboard operativo
+        (distribución de flota casi en tiempo real).
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/ZoneIdQuery'
+        - $ref: './common.yaml#/components/parameters/VehicleTypeQuery'
+      responses:
+        '200':
+          description: Una fila por (zona, tipo).
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [generatedAt, items]
+                properties:
+                  generatedAt:
+                    type: string
+                    format: date-time
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ZoneSummary' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerJwt: { $ref: './common.yaml#/components/securitySchemes/bearerJwt' }
+  schemas:
+    OperationalStatus:
+      type: string
+      enum: [AVAILABLE, RESERVED, IN_USE, LOW_BATTERY, WITHDRAWN, RETIRED]
+      description: >
+        6 de los 9 estados oficiales. CHARGING, REPAIRING y READY_FOR_SERVICE se consultan
+        en maintenance; aquí el vehículo aparece como WITHDRAWN.
+    VehicleAvailability:
+      type: object
+      additionalProperties: false
+      required: [vehicleId, vehicleType, zoneId, status, reservable, updatedAt]
+      properties:
+        vehicleId: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        zoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        status: { $ref: '#/components/schemas/OperationalStatus' }
+        reservable:
+          type: boolean
+          description: true solo si status es AVAILABLE. Derivado del estado, no es un estado aparte.
+        batteryLow:
+          type: boolean
+          description: Hubo aviso de batería baja mientras estaba reservado o en uso.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Momento del último evento aplicado.
+    ZoneSummary:
+      type: object
+      additionalProperties: false
+      required: [zoneId, vehicleType, counts]
+      properties:
+        zoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        counts:
+          type: object
+          additionalProperties: false
+          required: [AVAILABLE, RESERVED, IN_USE, LOW_BATTERY, WITHDRAWN, RETIRED]
+          properties:
+            AVAILABLE: { type: integer, minimum: 0 }
+            RESERVED: { type: integer, minimum: 0 }
+            IN_USE: { type: integer, minimum: 0 }
+            LOW_BATTERY: { type: integer, minimum: 0 }
+            WITHDRAWN: { type: integer, minimum: 0 }
+            RETIRED: { type: integer, minimum: 0 }

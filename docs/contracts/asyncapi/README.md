@@ -52,9 +52,8 @@ Todos los eventos llegan a `analytics-ingestion` (Data Lake). El resto de consum
 ## Cómo validar
 
 ```bash
-cd tools/contract-validator
-pip install -r requirements.txt
-python -m pytest -q
+cd tools
+mvn -pl contract-validator test
 ```
 
 Para validar el documento AsyncAPI con la herramienta oficial:

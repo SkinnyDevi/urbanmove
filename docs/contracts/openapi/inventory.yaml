@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: UrbanMove · inventory
+  version: 1.0.0
+  description: >
+    Bloque B. Registro de cada vehículo como activo: tipo, modelo, compra y estado administrativo.
+    No sabe dónde está el vehículo ni si está libre (eso es de availability).
+
+    Eventos consumidos: VehiclePurchased (alta del activo). Los vehículos no se crean por REST.
+    Eventos publicados: ninguno del catálogo. La baja (RETIRED) no tiene evento todavía:
+    ver decisión abierta 1 en docs/architecture/vehicle-state-machine.md.
+servers:
+  - url: http://localhost:8081
+    description: Local (docker-compose)
+security:
+  - bearerJwt: []
+tags:
+  - name: vehicles
+  - name: health
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      security: []
+      responses:
+        '200': { $ref: './common.yaml#/components/responses/Health' }
+        '503': { $ref: './common.yaml#/components/responses/Unhealthy' }
+
+  /vehicles:
+    get:
+      tags: [vehicles]
+      operationId: listVehicles
+      summary: Lista los activos de la flota
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/VehicleTypeQuery'
+        - name: adminStatus
+          in: query
+          schema: { $ref: '#/components/schemas/AdminStatus' }
+        - $ref: './common.yaml#/components/parameters/Limit'
+        - $ref: './common.yaml#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de vehículos.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './common.yaml#/components/schemas/PageInfo'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Vehicle' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+
+  /vehicles/{vehicleId}:
+    get:
+      tags: [vehicles]
+      operationId: getVehicle
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/VehicleIdPath'
+      responses:
+        '200':
+          description: El vehículo.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vehicle' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+
+  /vehicles/{vehicleId}/retire:
+    post:
+      tags: [vehicles]
+      operationId: retireVehicle
+      summary: Baja definitiva del activo
+      description: >
+        Roles: admin. Solo se admite si el vehículo ya está retirado de la calle (WITHDRAWN en availability);
+        cómo lo comprueba inventory depende de la decisión abierta 1.
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: './common.yaml#/components/parameters/VehicleIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+      responses:
+        '200':
+          description: Vehículo dado de baja.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vehicle' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+        '409': { $ref: './common.yaml#/components/responses/InvalidStateTransition' }
+
+components:
+  securitySchemes:
+    bearerJwt: { $ref: './common.yaml#/components/securitySchemes/bearerJwt' }
+  schemas:
+    AdminStatus:
+      type: string
+      enum: [ACTIVE, RETIRED]
+      description: Estado administrativo del activo. RETIRED es uno de los 9 estados oficiales; ACTIVE agrupa los otros 8.
+    Vehicle:
+      type: object
+      additionalProperties: false
+      required: [vehicleId, vehicleType, model, purchaseDate, purchasePrice, adminStatus, registeredAt]
+      properties:
+        vehicleId: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        model:
+          type: string
+          examples: ['Segway Ninebot Max G30']
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice: { $ref: './common.yaml#/components/schemas/Money' }
+        adminStatus: { $ref: '#/components/schemas/AdminStatus' }
+        registeredAt:
+          type: string
+          format: date-time
+          description: Cuándo llegó el VehiclePurchased.
+        retiredAt:
+          type: [string, 'null']
+          format: date-time
+        retirementReason:
+          type: [string, 'null']

@@ -1,0 +1,221 @@
+# Componentes comunes a todos los contratos REST de UrbanMove.
+# No es una API en sí: los demás ficheros lo referencian con $ref: './common.yaml#/components/...'
+# Los tipos de dominio (vehicleId, zoneId, vehicleType...) se toman de los contratos de eventos,
+# para que REST y eventos usen exactamente los mismos formatos.
+openapi: 3.1.0
+info:
+  title: UrbanMove · componentes comunes
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    bearerJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT emitido por el servicio identity. El claim `sub` es el userId (usr-...) y el claim
+        `roles` contiene uno o varios de: user, maintenance, admin. El formato exacto lo fija el bloque A.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: UUID v4 del flujo. Si no llega, el servicio genera uno. Se devuelve siempre en la respuesta (AGENTS.md 6).
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >
+        Clave única de la operación (UUID v4). Repetir la petición con la misma clave devuelve la misma
+        respuesta sin repetir el efecto (AGENTS.md 5.5).
+      schema:
+        type: string
+        format: uuid
+    VehicleIdPath:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        $ref: '../asyncapi/schemas/common.schema.json#/$defs/vehicleId'
+    ZoneIdQuery:
+      name: zoneId
+      in: query
+      required: false
+      schema:
+        $ref: '../asyncapi/schemas/common.schema.json#/$defs/zoneId'
+    VehicleTypeQuery:
+      name: vehicleType
+      in: query
+      required: false
+      schema:
+        $ref: '../asyncapi/schemas/common.schema.json#/$defs/vehicleType'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Valor de `nextCursor` de la página anterior.
+      schema:
+        type: string
+
+  headers:
+    CorrelationId:
+      description: El correlationId usado para esta petición.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    VehicleId:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/vehicleId'
+    UserId:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/userId'
+    ZoneId:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/zoneId'
+    VehicleType:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/vehicleType'
+    Money:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/money'
+    Location:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/location'
+
+    Problem:
+      type: object
+      description: Error en formato RFC 7807 (Problem Details), siempre con correlationId (AGENTS.md 3.1).
+      required: [type, title, status, correlationId]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: Identifica el tipo de error, p. ej. /problems/invalid-state-transition
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        correlationId:
+          type: string
+          format: uuid
+        errors:
+          type: array
+          description: Solo en errores de validación (400).
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }
+    InvalidStateTransitionProblem:
+      description: >
+        409 cuando la acción no está permitida en el estado actual
+        (ver docs/architecture/vehicle-state-machine.md).
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required: [currentState, action]
+          properties:
+            type:
+              const: /problems/invalid-state-transition
+            currentState:
+              type: string
+            action:
+              type: string
+
+    Health:
+      type: object
+      required: [status, service]
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+        service:
+          type: string
+          examples: [availability-service]
+        checks:
+          type: object
+          description: Estado de cada dependencia (base de datos, bus de eventos...).
+          additionalProperties:
+            type: string
+            enum: [UP, DOWN]
+
+    PageInfo:
+      type: object
+      properties:
+        nextCursor:
+          type: [string, 'null']
+          description: null si no hay más páginas.
+
+  responses:
+    Health:
+      description: El servicio y sus dependencias responden.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Health' }
+    Unhealthy:
+      description: Alguna dependencia crítica no responde; Docker o ECS reiniciarán el contenedor.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Health' }
+    BadRequest:
+      description: La petición no cumple el esquema.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Falta el JWT o no es válido.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: El JWT es válido pero su rol no permite esta operación.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: El recurso no existe.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InvalidStateTransition:
+      description: La acción no está permitida en el estado actual.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/InvalidStateTransitionProblem' }
+    Conflict:
+      description: Conflicto con el estado actual del recurso.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }

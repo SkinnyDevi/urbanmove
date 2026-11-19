@@ -1,0 +1,318 @@
+openapi: 3.1.0
+info:
+  title: UrbanMove · maintenance
+  version: 1.0.0
+  description: >
+    Bloque B. Órdenes de mantenimiento: retirada, recarga, reparación, revisión y vuelta al servicio.
+    Cada acción del técnico es una operación POST que aplica una transición de la orden
+    (docs/architecture/vehicle-state-machine.md). Una transición ilegal devuelve 409.
+
+    Eventos publicados: VehicleWithdrawnForMaintenance (al retirar), VehicleReturnedToService (al devolver).
+    Eventos consumidos: ninguno. La Lambda maintenance-detection crea las órdenes llamando a
+    POST /maintenance-orders con Idempotency-Key = eventId del VehicleBatteryLow que la originó,
+    así un evento duplicado no crea dos órdenes.
+servers:
+  - url: http://localhost:8084
+    description: Local (docker-compose)
+security:
+  - bearerJwt: []
+tags:
+  - name: orders
+  - name: actions
+  - name: health
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      security: []
+      responses:
+        '200': { $ref: './common.yaml#/components/responses/Health' }
+        '503': { $ref: './common.yaml#/components/responses/Unhealthy' }
+
+  /maintenance-orders:
+    post:
+      tags: [orders]
+      operationId: openMaintenanceOrder
+      summary: Abre una orden (estado PENDING)
+      description: >
+        Roles: maintenance, admin (la Lambda maintenance-detection usa una identidad de servicio con rol admin;
+        el formato lo fija el bloque A). Solo puede haber una orden activa por vehículo: si ya existe,
+        devuelve 409 con la orden existente en `detail`.
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OpenOrderRequest' }
+      responses:
+        '201':
+          description: Orden creada.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+            Location:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MaintenanceOrder' }
+        '200':
+          description: Repetición con la misma Idempotency-Key; devuelve la orden ya creada.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MaintenanceOrder' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '409': { $ref: './common.yaml#/components/responses/Conflict' }
+    get:
+      tags: [orders]
+      operationId: listMaintenanceOrders
+      summary: Lista órdenes (bandeja de la app de mantenimiento)
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - name: status
+          in: query
+          style: form
+          explode: false
+          description: Uno o varios estados separados por comas, p. ej. PENDING,WITHDRAWN
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/OrderStatus' }
+        - $ref: './common.yaml#/components/parameters/ZoneIdQuery'
+        - name: vehicleId
+          in: query
+          schema: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        - name: technicianId
+          in: query
+          schema: { $ref: './common.yaml#/components/schemas/UserId' }
+        - $ref: './common.yaml#/components/parameters/Limit'
+        - $ref: './common.yaml#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Página de órdenes, las más antiguas primero.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './common.yaml#/components/schemas/PageInfo'
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/MaintenanceOrder' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+
+  /maintenance-orders/{orderId}:
+    get:
+      tags: [orders]
+      operationId: getMaintenanceOrder
+      description: 'Roles: maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/Order' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+
+  /maintenance-orders/{orderId}/withdraw:
+    post:
+      tags: [actions]
+      operationId: withdrawVehicle
+      summary: PENDING → WITHDRAWN. Publica VehicleWithdrawnForMaintenance.
+      description: 'Roles: maintenance. El técnico asignado es el `sub` del JWT.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: &actionResponses
+        '200': { $ref: '#/components/responses/Order' }
+        '400': { $ref: './common.yaml#/components/responses/BadRequest' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '403': { $ref: './common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+        '409': { $ref: './common.yaml#/components/responses/InvalidStateTransition' }
+
+  /maintenance-orders/{orderId}/start-charging:
+    post:
+      tags: [actions]
+      operationId: startCharging
+      summary: WITHDRAWN | REPAIRING → CHARGING
+      description: 'Roles: maintenance.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: *actionResponses
+
+  /maintenance-orders/{orderId}/start-repair:
+    post:
+      tags: [actions]
+      operationId: startRepair
+      summary: WITHDRAWN | CHARGING → REPAIRING
+      description: 'Roles: maintenance.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: *actionResponses
+
+  /maintenance-orders/{orderId}/mark-ready:
+    post:
+      tags: [actions]
+      operationId: markReadyForService
+      summary: WITHDRAWN | CHARGING | REPAIRING → READY_FOR_SERVICE
+      description: 'Roles: maintenance. Desde WITHDRAWN cuenta como revisión (INSPECTION).'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      responses: *actionResponses
+
+  /maintenance-orders/{orderId}/return-to-service:
+    post:
+      tags: [actions]
+      operationId: returnToService
+      summary: READY_FOR_SERVICE → RETURNED. Publica VehicleReturnedToService.
+      description: 'Roles: maintenance.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [zoneId]
+              properties:
+                zoneId:
+                  $ref: './common.yaml#/components/schemas/ZoneId'
+                  description: Zona donde se deja el vehículo; puede ser distinta de la de origen.
+      responses: *actionResponses
+
+  /maintenance-orders/{orderId}/cancel:
+    post:
+      tags: [actions]
+      operationId: cancelOrder
+      summary: PENDING → CANCELLED
+      description: 'Roles: maintenance, admin. Solo antes de retirar el vehículo.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - $ref: './common.yaml#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/OrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+      responses: *actionResponses
+
+components:
+  securitySchemes:
+    bearerJwt: { $ref: './common.yaml#/components/securitySchemes/bearerJwt' }
+
+  parameters:
+    OrderIdPath:
+      name: orderId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/MaintenanceOrderId' }
+
+  responses:
+    Order:
+      description: La orden en su estado actual.
+      headers:
+        X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MaintenanceOrder' }
+
+  schemas:
+    MaintenanceOrderId:
+      type: string
+      pattern: '^mnt-[a-z0-9-]+$'
+    OrderStatus:
+      type: string
+      enum: [PENDING, WITHDRAWN, CHARGING, REPAIRING, READY_FOR_SERVICE, RETURNED, CANCELLED]
+    MaintenanceReason:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/maintenanceReason'
+    MaintenanceWork:
+      $ref: '../asyncapi/schemas/common.schema.json#/$defs/maintenanceWork'
+    OpenOrderRequest:
+      type: object
+      additionalProperties: false
+      required: [vehicleId, vehicleType, reason, zoneId]
+      properties:
+        vehicleId: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        reason: { $ref: '#/components/schemas/MaintenanceReason' }
+        zoneId:
+          $ref: './common.yaml#/components/schemas/ZoneId'
+          description: Zona donde está el vehículo ahora.
+        notes:
+          type: string
+          maxLength: 1000
+        triggeredByEventId:
+          type: string
+          format: uuid
+          description: eventId del evento que la originó (p. ej. VehicleBatteryLow), si lo hay.
+    MaintenanceOrder:
+      type: object
+      additionalProperties: false
+      required: [maintenanceOrderId, vehicleId, vehicleType, reason, zoneId, status, workPerformed, createdAt]
+      properties:
+        maintenanceOrderId: { $ref: '#/components/schemas/MaintenanceOrderId' }
+        vehicleId: { $ref: './common.yaml#/components/schemas/VehicleId' }
+        vehicleType: { $ref: './common.yaml#/components/schemas/VehicleType' }
+        reason: { $ref: '#/components/schemas/MaintenanceReason' }
+        zoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        technicianId:
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/UserId'
+            - type: 'null'
+        workPerformed:
+          type: array
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/MaintenanceWork' }
+        notes:
+          type: [string, 'null']
+        triggeredByEventId:
+          type: [string, 'null']
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        withdrawnAt:
+          type: [string, 'null']
+          format: date-time
+        returnedAt:
+          type: [string, 'null']
+          format: date-time
+        returnZoneId:
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/ZoneId'
+            - type: 'null'

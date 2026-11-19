@@ -1,0 +1,98 @@
+openapi: 3.1.0
+info:
+  title: UrbanMove · zones
+  version: 1.0.0
+  description: >
+    Bloque B. Catálogo de zonas permitidas, su geometría y sus restricciones de aparcamiento.
+    Es de solo lectura: las zonas se cargan al arrancar desde un fichero semilla
+    (tools/synthetic-generator/out/seed/zones.json). No publica ni consume eventos.
+servers:
+  - url: http://localhost:8083
+    description: Local (docker-compose)
+security:
+  - bearerJwt: []
+tags:
+  - name: zones
+  - name: health
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      security: []
+      responses:
+        '200': { $ref: './common.yaml#/components/responses/Health' }
+        '503': { $ref: './common.yaml#/components/responses/Unhealthy' }
+
+  /zones:
+    get:
+      tags: [zones]
+      operationId: listZones
+      summary: Lista todas las zonas
+      description: 'Roles: user, maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Zonas ordenadas por zoneId.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Zone' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+
+  /zones/{zoneId}:
+    get:
+      tags: [zones]
+      operationId: getZone
+      description: 'Roles: user, maintenance, admin.'
+      parameters:
+        - $ref: './common.yaml#/components/parameters/CorrelationId'
+        - name: zoneId
+          in: path
+          required: true
+          schema: { $ref: './common.yaml#/components/schemas/ZoneId' }
+      responses:
+        '200':
+          description: La zona.
+          headers:
+            X-Correlation-Id: { $ref: './common.yaml#/components/headers/CorrelationId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Zone' }
+        '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
+        '404': { $ref: './common.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerJwt: { $ref: './common.yaml#/components/securitySchemes/bearerJwt' }
+  schemas:
+    Zone:
+      type: object
+      additionalProperties: false
+      required: [zoneId, name, center, radiusMeters, capacity]
+      properties:
+        zoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
+        name:
+          type: string
+          examples: ['Campus de Tafira (ULPGC)']
+        center: { $ref: './common.yaml#/components/schemas/Location' }
+        radiusMeters:
+          type: integer
+          minimum: 1
+        capacity:
+          type: integer
+          minimum: 0
+          description: Plazas de aparcamiento de vehículos en la zona.
+        parkingRestrictions:
+          type: array
+          description: Restricciones de aparcamiento (texto libre en v1).
+          items: { type: string }

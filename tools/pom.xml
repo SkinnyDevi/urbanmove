@@ -33,6 +33,7 @@
     <version.slf4j>2.0.17</version.slf4j>
     <version.snakeyaml>2.5</version.snakeyaml>
     <version.junit>5.12.2</version.junit>
+    <version.swagger-parser>2.1.22</version.swagger-parser>
   </properties>
 
   <dependencyManagement>
@@ -63,6 +64,11 @@
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>${version.snakeyaml}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.parser.v3</groupId>
+        <artifactId>swagger-parser</artifactId>
+        <version>${version.swagger-parser}</version>
       </dependency>
       <dependency>
         <groupId>com.urbanmove</groupId>
