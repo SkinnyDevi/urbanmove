@@ -2,8 +2,8 @@
 <!--
   Proyecto padre de los microservicios Java de UrbanMove.
   Fija en un solo sitio la versión de Java, las librerías y los plugins.
-  Cuando se añada Spring Boot, se importará su BOM en dependencyManagement
-  (no como <parent>, para que este pom siga siendo el padre común).
+  Spring Boot se importa como BOM en dependencyManagement (no como <parent>),
+  para que este pom siga siendo el padre común de todos los servicios.
 
   Uso (desde la carpeta services/):
     mvn test   -> compila y ejecuta los tests de todos los servicios
@@ -22,23 +22,38 @@
   <modules>
     <module>availability</module>
     <module>maintenance</module>
+    <module>zones</module>
   </modules>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <version.junit>5.12.2</version.junit>
+    <version.spring-boot>4.1.2</version.spring-boot>
+    <version.swagger-parser>2.1.22</version.swagger-parser>
+    <version.networknt>2.0.8</version.networknt>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- Versiones de Spring, Jackson, JUnit, Flyway, PostgreSQL, Testcontainers... -->
       <dependency>
-        <groupId>org.junit</groupId>
-        <artifactId>junit-bom</artifactId>
-        <version>${version.junit}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.spring-boot}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <!-- Tests de contrato: leer docs/contracts/openapi y validar respuestas contra sus esquemas -->
+      <dependency>
+        <groupId>io.swagger.parser.v3</groupId>
+        <artifactId>swagger-parser</artifactId>
+        <version>${version.swagger-parser}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>${version.networknt}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -58,11 +73,20 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.13.0</version>
+          <configuration>
+            <!-- Spring necesita los nombres de los parámetros (@PathVariable, @RequestParam...) -->
+            <parameters>true</parameters>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.5.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${version.spring-boot}</version>
         </plugin>
       </plugins>
     </pluginManagement>

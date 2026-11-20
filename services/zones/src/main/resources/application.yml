@@ -1,0 +1,38 @@
+# Configuración del servicio zones. Todo lo sensible llega por variables de entorno
+# (AGENTS.md 8.5): DB_PASSWORD y JWT_SECRET no tienen valor por defecto a propósito.
+spring:
+  application:
+    name: zones-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/zones}
+    username: ${DB_USER:zones}
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-timeout: 3000    # ms. Ninguna llamada de red sin timeout (AGENTS.md 6.4)
+      maximum-pool-size: 5
+  jdbc:
+    template:
+      query-timeout: 3s
+  flyway:
+    locations: classpath:db/migration
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+
+logging:
+  structured:
+    format:
+      console: com.urbanmove.zones.infrastructure.logging.UrbanMoveLogFormatter
+
+urbanmove:
+  zones:
+    # Por defecto, la copia de tools/synthetic-generator/config/zones.json incluida en el jar.
+    seed-file: ${ZONES_SEED_FILE:classpath:seed/zones.json}
+  security:
+    jwt-secret: ${JWT_SECRET}

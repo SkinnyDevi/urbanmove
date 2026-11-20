@@ -1,0 +1,64 @@
+# Entorno local completo de UrbanMove.
+#
+#   cp .env.example .env      # y rellena las contraseñas (nunca se sube al repo)
+#   docker compose up -d --build
+#   docker compose ps         # todos deben acabar en "healthy"
+#
+# Puertos de los servicios: docs/contracts/openapi/README.md
+name: urbanmove
+
+services:
+  # Un único PostgreSQL con una base de datos y un usuario por servicio (ADR-001).
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: urbanmove
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      SERVICE_DATABASES: zones
+      ZONES_DB_PASSWORD: ${ZONES_DB_PASSWORD:?Define ZONES_DB_PASSWORD en .env}
+    volumes:
+      - ./infra/local/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"   # cambia POSTGRES_PORT en .env si ya tienes otro PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbanmove -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # SNS, SQS, S3, Lambda y EventBridge en local.
+  # 4.14 es la última versión que funciona sin cuenta de LocalStack; las 2026.x piden LOCALSTACK_AUTH_TOKEN.
+  localstack:
+    image: localstack/localstack:4.14
+    environment:
+      SERVICES: sns,sqs,s3,lambda,events,logs
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health > /dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  zones:
+    build:
+      context: ./services
+      dockerfile: zones/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/zones
+      DB_USER: zones
+      DB_PASSWORD: ${ZONES_DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
