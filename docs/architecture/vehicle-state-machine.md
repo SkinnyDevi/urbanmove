@@ -19,7 +19,7 @@ El catálogo cerrado de 13 eventos no tiene ningún evento para `CHARGING`, `REP
 | `CHARGING`, `REPAIRING`, `READY_FOR_SERVICE` | **maintenance** | Pasan dentro del taller. Son estados de la orden de mantenimiento. Para el resto del sistema el vehículo está `WITHDRAWN` hasta que llega `VehicleReturnedToService`. |
 | `RETIRED` | **inventory** | Es una baja administrativa del activo. availability también lo refleja para no ofrecer el vehículo nunca más (ver decisión abierta 1). |
 
-Así se usan los 9 estados oficiales, no se inventa ningún evento y cada servicio valida solo lo suyo (base de datos por servicio, ADR-001). Esta decisión es candidata al ADR del bloque B.
+Así se usan los 9 estados oficiales, no se inventa ningún evento y cada servicio valida solo lo suyo (base de datos por servicio, ADR-001). La decisión está recogida en [ADR-004](../adr/ADR-004-propiedad-estado-vehiculo.md).
 
 ## Vista completa (los 9 estados)
 

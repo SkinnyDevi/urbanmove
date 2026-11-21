@@ -28,9 +28,9 @@ services:
       retries: 10
 
   # SNS, SQS, S3, Lambda y EventBridge en local.
-  # 4.14 es la última versión que funciona sin cuenta de LocalStack; las 2026.x piden LOCALSTACK_AUTH_TOKEN.
+  # 4.14.0: la misma versión que la práctica 4. Las versiones nuevas (2026.x) piden cuenta y LOCALSTACK_AUTH_TOKEN.
   localstack:
-    image: localstack/localstack:4.14
+    image: localstack/localstack:4.14.0
     environment:
       SERVICES: sns,sqs,s3,lambda,events,logs
       AWS_DEFAULT_REGION: us-east-1

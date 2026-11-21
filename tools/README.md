@@ -28,4 +28,6 @@ mvn package    # además genera los .jar en contract-validator/target y syntheti
 
 ## Versiones
 
-Todas se fijan en `tools/pom.xml`: Java 21, Jackson 2.22.1, networknt json-schema-validator 2.0.8 y JUnit 5.12.2.
+Todas se fijan en `tools/pom.xml`: Java 21, Jackson 2.22.1, networknt json-schema-validator 2.0.8, swagger-parser 2.1.22 (tests de los contratos OpenAPI) y JUnit 5.12.2.
+
+`mvn test` en `contract-validator` comprueba tanto los eventos (`docs/contracts/asyncapi/`) como los contratos REST (`docs/contracts/openapi/`).

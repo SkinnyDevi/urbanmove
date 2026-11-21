@@ -61,4 +61,4 @@ Si ya tienes otro PostgreSQL en el puerto 5432, cambia `POSTGRES_PORT` en `.env`
 
 - **Formato del JWT**: HS256 con secreto compartido y roles en el claim `roles`. Lo cierra el bloque A; si cambia, solo se toca el constructor de `JwtVerifier`.
 - **Publicación de eventos**: zones no publica eventos, así que la plantilla todavía no incluye el publicador SNS con el envelope. Se añadirá con `maintenance`, que es el primer servicio que publica.
-- **LocalStack 4.14**: las versiones 2026.x necesitan cuenta (`LOCALSTACK_AUTH_TOKEN`).
+- **LocalStack 4.14.0**: la misma versión fijada en la práctica 4; las versiones 2026.x necesitan cuenta (`LOCALSTACK_AUTH_TOKEN`).
