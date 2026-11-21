@@ -1,19 +1,22 @@
 package com.urbanmove.zones.infrastructure.health;
 
+import com.urbanmove.zones.infrastructure.persistence.Database;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.simple.JdbcClient;
 
-/** La base de datos responde a un SELECT 1 (con el timeout de consulta configurado). */
+/** La base de datos acepta conexiones y responde en menos de 3 s. */
 public final class DatabaseHealthCheck implements DependencyHealthCheck {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseHealthCheck.class);
 
-    private final JdbcClient jdbc;
+    private final DataSource dataSource;
 
-    public DatabaseHealthCheck(JdbcClient jdbc) {
-        this.jdbc = Objects.requireNonNull(jdbc);
+    public DatabaseHealthCheck(DataSource dataSource) {
+        this.dataSource = Objects.requireNonNull(dataSource);
     }
 
     @Override
@@ -23,9 +26,9 @@ public final class DatabaseHealthCheck implements DependencyHealthCheck {
 
     @Override
     public boolean isUp() {
-        try {
-            return Integer.valueOf(1).equals(jdbc.sql("SELECT 1").query(Integer.class).single());
-        } catch (RuntimeException e) {
+        try (Connection connection = dataSource.getConnection()) {
+            return connection.isValid(Database.TIMEOUT_SECONDS);
+        } catch (SQLException | RuntimeException e) {
             log.warn("Database health check failed: {}", e.getMessage());
             return false;
         }

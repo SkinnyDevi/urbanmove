@@ -2,33 +2,42 @@ package com.urbanmove.zones.integration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.urbanmove.zones.application.SeedZonesUseCase;
+import com.urbanmove.zones.infrastructure.ServiceConfig;
+import com.urbanmove.zones.infrastructure.persistence.Database;
+import com.urbanmove.zones.infrastructure.persistence.JdbcZoneRepository;
+import com.urbanmove.zones.infrastructure.seed.JsonZoneSeedSource;
+import com.zaxxer.hikari.HikariDataSource;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 /** El servicio completo contra PostgreSQL real: semilla, seguridad, errores y correlationId. */
 class ZonesApiIntegrationTest extends ZonesApiTestSupport {
 
-    private static final JsonMapper JSON = JsonMapper.builder().build();
-
-    @Autowired
-    private SeedZonesUseCase seedZones;
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private static JsonNode body(HttpResponse<String> response) {
-        return JSON.readTree(response.body());
+        try {
+            return JSON.readTree(response.body());
+        } catch (Exception e) {
+            throw new AssertionError("Respuesta no es JSON: " + response.body(), e);
+        }
     }
 
     private static int zonesInSeedFile() throws Exception {
-        try (var in = new ClassPathResource("seed/zones.json").getInputStream()) {
+        try (InputStream in = ZonesApiIntegrationTest.class.getClassLoader().getResourceAsStream("seed/zones.json")) {
             return JSON.readTree(in).size();
         }
+    }
+
+    private static boolean isProblemJson(HttpResponse<String> response) {
+        return response.headers().firstValue("Content-Type").orElse("").startsWith("application/problem+json");
     }
 
     @Test
@@ -37,9 +46,9 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
 
         assertEquals(200, response.statusCode());
         JsonNode health = body(response);
-        assertEquals("UP", health.get("status").asString());
-        assertEquals("zones-service", health.get("service").asString());
-        assertEquals("UP", health.get("checks").get("database").asString());
+        assertEquals("UP", health.get("status").asText());
+        assertEquals("zones-service", health.get("service").asText());
+        assertEquals("UP", health.get("checks").get("database").asText());
     }
 
     @Test
@@ -51,8 +60,14 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
     }
 
     @Test
-    void runningTheSeedAgainInsertsNothing() {
-        assertEquals(0, seedZones.execute());
+    void runningTheSeedAgainAgainstTheRealDatabaseInsertsNothing() {
+        ServiceConfig config = databaseConfig();
+        try (HikariDataSource db = Database.connect(config.dbUrl(), config.dbUser(), config.dbPassword())) {
+            JdbcZoneRepository repository = new JdbcZoneRepository(db, JSON);
+            SeedZonesUseCase seed = new SeedZonesUseCase(JsonZoneSeedSource.fromLocation(config.seedFile(), JSON), repository);
+
+            assertEquals(0, seed.execute());
+        }
     }
 
     @Test
@@ -61,8 +76,8 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
 
         assertEquals(200, response.statusCode());
         JsonNode zone = body(response);
-        assertEquals("tafira", zone.get("zoneId").asString());
-        assertEquals("Campus de Tafira (ULPGC)", zone.get("name").asString());
+        assertEquals("tafira", zone.get("zoneId").asText());
+        assertEquals("Campus de Tafira (ULPGC)", zone.get("name").asText());
         assertEquals(28.0716, zone.get("center").get("lat").asDouble());
     }
 
@@ -78,9 +93,9 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
         HttpResponse<String> response = get("/zones/atlantis", token("user"));
 
         assertEquals(404, response.statusCode());
-        assertTrue(response.headers().firstValue("Content-Type").orElse("").startsWith("application/problem+json"));
+        assertTrue(isProblemJson(response));
         JsonNode problem = body(response);
-        assertEquals("/problems/not-found", problem.get("type").asString());
+        assertEquals("/problems/not-found", problem.get("type").asText());
         assertEquals(404, problem.get("status").asInt());
         assertTrue(problem.hasNonNull("correlationId"));
     }
@@ -90,7 +105,24 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
         HttpResponse<String> response = get("/zones/Mesa_Y_Lopez", token("user"));
 
         assertEquals(400, response.statusCode());
-        assertEquals("/problems/validation", body(response).get("type").asString());
+        assertEquals("/problems/validation", body(response).get("type").asText());
+    }
+
+    @Test
+    void anUnknownRouteIs404ProblemDetails() {
+        HttpResponse<String> response = get("/no-such-route", token("user"));
+
+        assertEquals(404, response.statusCode());
+        assertTrue(isProblemJson(response));
+        assertTrue(body(response).hasNonNull("correlationId"));
+    }
+
+    @Test
+    void aWrongMethodIs405ProblemDetails() {
+        HttpResponse<String> response = request("DELETE", "/zones/tafira", token("admin"), null);
+
+        assertEquals(405, response.statusCode());
+        assertTrue(isProblemJson(response));
     }
 
     @Test
@@ -98,8 +130,8 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
         HttpResponse<String> response = get("/zones", null);
 
         assertEquals(401, response.statusCode());
-        assertTrue(response.headers().firstValue("Content-Type").orElse("").startsWith("application/problem+json"));
-        assertEquals("/problems/unauthorized", body(response).get("type").asString());
+        assertTrue(isProblemJson(response));
+        assertEquals("/problems/unauthorized", body(response).get("type").asText());
         assertTrue(body(response).hasNonNull("correlationId"));
     }
 
@@ -110,8 +142,9 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
     }
 
     @Test
-    void aTokenSignedWithAnotherSecretIs401() {
-        String forged = token("admin").substring(0, token("admin").lastIndexOf('.')) + ".invalidsignature";
+    void aTokenWithABadSignatureIs401() {
+        String token = token("admin");
+        String forged = token.substring(0, token.lastIndexOf('.')) + ".invalidsignature";
         assertEquals(401, get("/zones", forged).statusCode());
     }
 
@@ -120,7 +153,7 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
         HttpResponse<String> response = get("/zones", token("guest"));
 
         assertEquals(403, response.statusCode());
-        assertEquals("/problems/forbidden", body(response).get("type").asString());
+        assertEquals("/problems/forbidden", body(response).get("type").asText());
     }
 
     @Test
@@ -132,7 +165,7 @@ class ZonesApiIntegrationTest extends ZonesApiTestSupport {
 
         assertEquals(correlationId, ok.headers().firstValue("X-Correlation-Id").orElseThrow());
         assertEquals(correlationId, error.headers().firstValue("X-Correlation-Id").orElseThrow());
-        assertEquals(correlationId, body(error).get("correlationId").asString());
+        assertEquals(correlationId, body(error).get("correlationId").asText());
     }
 
     @Test

@@ -1,0 +1,18 @@
+<!-- Logs en JSON por la salida estándar (los recoge Docker / CloudWatch). Formato: AGENTS.md 6.2 -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="com.urbanmove.zones.infrastructure.logging.JsonLogEncoder">
+      <service>zones-service</service>
+    </encoder>
+  </appender>
+
+  <!-- Menos ruido de las librerías -->
+  <logger name="org.eclipse.jetty" level="WARN"/>
+  <logger name="com.zaxxer.hikari" level="WARN"/>
+  <logger name="org.flywaydb" level="WARN"/>
+  <logger name="org.testcontainers" level="WARN"/>
+
+  <root level="${LOG_LEVEL:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

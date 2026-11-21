@@ -2,31 +2,50 @@ package com.urbanmove.zones.unit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.urbanmove.zones.domain.InvalidZoneException;
 import com.urbanmove.zones.domain.Zone;
 import com.urbanmove.zones.infrastructure.seed.JsonZoneSeedSource;
+import java.io.ByteArrayInputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import tools.jackson.databind.json.JsonMapper;
+import org.junit.jupiter.api.io.TempDir;
 
 class JsonZoneSeedSourceTest {
 
-    private static final JsonMapper JSON = JsonMapper.builder().build();
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private static List<Zone> load(String json) {
-        return new JsonZoneSeedSource(new ByteArrayResource(json.getBytes(StandardCharsets.UTF_8)), JSON).load();
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        return new JsonZoneSeedSource("test", () -> new ByteArrayInputStream(bytes), JSON).load();
     }
 
     @Test
     void theBundledSeedIsValid() {
-        List<Zone> zones = new JsonZoneSeedSource(new ClassPathResource("seed/zones.json"), JSON).load();
+        List<Zone> zones = JsonZoneSeedSource.fromLocation("classpath:seed/zones.json", JSON).load();
 
         assertFalse(zones.isEmpty());
         assertTrue(zones.stream().anyMatch(z -> z.id().value().equals("tafira")));
         assertEquals(zones.size(), zones.stream().map(Zone::id).distinct().count(), "ids repetidos en la semilla");
+    }
+
+    @Test
+    void aSeedCanBeReadFromAFile(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("zones.json");
+        Files.writeString(file, """
+                [{"zoneId":"a","name":"A","center":{"lat":0,"lon":0},"radiusMeters":1,"capacity":0}]""");
+
+        assertEquals(1, JsonZoneSeedSource.fromLocation(file.toString(), JSON).load().size());
+    }
+
+    @Test
+    void aMissingSeedFileFailsClearly() {
+        assertThrows(UncheckedIOException.class,
+                () -> JsonZoneSeedSource.fromLocation("classpath:does/not/exist.json", JSON).load());
     }
 
     @Test

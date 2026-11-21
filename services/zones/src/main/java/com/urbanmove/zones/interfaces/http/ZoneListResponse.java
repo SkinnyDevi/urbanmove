@@ -1,4 +1,4 @@
-package com.urbanmove.zones.interfaces.rest;
+package com.urbanmove.zones.interfaces.http;
 
 import java.util.List;
 
