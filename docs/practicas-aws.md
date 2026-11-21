@@ -64,6 +64,8 @@ Lo más aprovechable para el proyecto son las **escrituras condicionales**:
 - **GSI disperso**: solo indexa los elementos que tienen el atributo. Útil, por ejemplo, para "vehículos con batería baja".
 - Las lecturas de un GSI son **eventualmente consistentes**.
 
+**En el proyecto:** `maintenance` ya usa DynamoDB así: una orden activa por vehículo, `Idempotency-Key` y bloqueo optimista son escrituras condicionales dentro de una transacción ([ADR-005](adr/ADR-005-dynamodb-y-outbox.md)).
+
 Candidato claro en UrbanMove: **telemetry** (muchas escrituras pequeñas por vehículo y tiempo; clave `vehicleId` + `timestamp`). Los servicios con relaciones y transacciones (reservas, mantenimiento) siguen mejor en PostgreSQL. Usar DynamoDB o PostgreSQL es decisión de cada servicio siempre que la base de datos sea **solo suya** (ADR-001).
 
 ## Práctica 7 · Docker y ECR
@@ -121,6 +123,7 @@ Por qué importa para el proyecto:
 
 - **SQS entrega "al menos una vez"**: un mensaje puede llegar repetido. Todo consumidor debe ser idempotente (práctica 6).
 - **Tolerancia a fallos**: si `history` se cae, sus eventos esperan en su cola y se procesan al volver (escenario de fallo 1). Si un evento falla siempre, acaba en la DLQ y se reprocesa (escenario de fallo 2).
+- **Ya está montado en local**: `infra/local/localstack/init-aws.sh` crea el tópico, una cola y una DLQ por consumidor y sus filtros; `maintenance` publica sus eventos ahí.
 - Un único tópico con **filtros por `eventType`** en cada suscripción (decisión abierta 3 de `docs/contracts/asyncapi/README.md`, a cerrar en el ADR-002 del bloque D).
 
 ## Checklist de cada sesión en AWS Academy

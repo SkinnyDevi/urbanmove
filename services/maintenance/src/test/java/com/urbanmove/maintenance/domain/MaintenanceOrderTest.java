@@ -59,13 +59,15 @@ class MaintenanceOrderTest {
     }
 
     private static MaintenanceOrder newOrder() {
-        return MaintenanceOrder.open(ORDER, VEHICLE, VehicleType.SCOOTER, MaintenanceReason.LOW_BATTERY, MESA);
+        return MaintenanceOrder.open(ORDER, VEHICLE, VehicleType.SCOOTER, MaintenanceReason.LOW_BATTERY, MESA,
+                T0.minusSeconds(600), null, null);
     }
 
     private static MaintenanceOrder orderIn(MaintenanceOrderStatus status) {
         boolean withdrawn = status != PENDING && status != CANCELLED;
-        return MaintenanceOrder.rehydrate(ORDER, VEHICLE, VehicleType.SCOOTER, MaintenanceReason.LOW_BATTERY, MESA,
-                status, withdrawn ? TECH : null, withdrawn ? T0 : null, Set.of());
+        return MaintenanceOrder.rehydrate(new MaintenanceOrder.Snapshot(ORDER, VEHICLE, VehicleType.SCOOTER,
+                MaintenanceReason.LOW_BATTERY, MESA, status, withdrawn ? TECH : null, Set.of(), null, null,
+                T0.minusSeconds(600), withdrawn ? T0 : null, null, null, null, 3));
     }
 
     private static void apply(MaintenanceOrder order, MaintenanceAction action) {
@@ -75,7 +77,7 @@ class MaintenanceOrderTest {
             case START_REPAIR -> order.startRepair();
             case MARK_READY_FOR_SERVICE -> order.markReadyForService();
             case RETURN_TO_SERVICE -> order.returnToService(MESA, T0.plusSeconds(60));
-            case CANCEL -> order.cancel();
+            case CANCEL -> order.cancel("Orden duplicada");
         }
     }
 
@@ -112,7 +114,8 @@ class MaintenanceOrderTest {
         MaintenanceOrder order = newOrder();
 
         assertEquals(PENDING, order.status());
-        assertTrue(order.technicianId().isEmpty());
+        assertNull(order.snapshot().technicianId());
+        assertTrue(order.isActive());
         assertTrue(order.pullDomainEvents().isEmpty());
     }
 
@@ -179,7 +182,7 @@ class MaintenanceOrderTest {
         MaintenanceOrder order = newOrder();
         order.withdrawForMaintenance(TECH, T0);
 
-        assertThrows(InvalidStateTransitionError.class, order::cancel);
+        assertThrows(InvalidStateTransitionError.class, () -> order.cancel("Ya no hace falta"));
     }
 
     @Test
@@ -189,6 +192,51 @@ class MaintenanceOrderTest {
         order.startRepair();
 
         assertThrows(InvalidStateTransitionError.class, () -> order.returnToService(MESA, T0.plusSeconds(60)));
+    }
+
+    @Test
+    void returningRecordsWhenAndWhereTheVehicleWentBack() {
+        MaintenanceOrder order = newOrder();
+        order.withdrawForMaintenance(TECH, T0);
+        order.startCharging();
+        order.markReadyForService();
+
+        order.returnToService(TAFIRA, T0.plusSeconds(60));
+
+        MaintenanceOrder.Snapshot snapshot = order.snapshot();
+        assertEquals(T0.plusSeconds(60), snapshot.returnedAt());
+        assertEquals(TAFIRA, snapshot.returnZoneId());
+        assertFalse(order.isActive());
+    }
+
+    @Test
+    void cancellingKeepsTheReasonAndRequiresOne() {
+        MaintenanceOrder order = newOrder();
+
+        assertThrows(IllegalArgumentException.class, () -> order.cancel(" "));
+        assertEquals(PENDING, order.status(), "un motivo vacío no cancela");
+
+        order.cancel("Falsa alarma de batería");
+        assertEquals("Falsa alarma de batería", order.snapshot().cancellationReason());
+        assertFalse(order.isActive());
+    }
+
+    @Test
+    void snapshotAndRehydrateKeepEverything() {
+        MaintenanceOrder order = MaintenanceOrder.open(ORDER, VEHICLE, VehicleType.BIKE, MaintenanceReason.BREAKDOWN,
+                MESA, T0, "Freno trasero roto", java.util.UUID.fromString("8c1e0c2a-1111-4222-8333-444455556666"));
+        order.withdrawForMaintenance(TECH, T0.plusSeconds(10));
+        order.startRepair();
+
+        MaintenanceOrder copy = MaintenanceOrder.rehydrate(order.snapshot());
+
+        assertEquals(order.snapshot(), copy.snapshot());
+    }
+
+    @Test
+    void textFieldsHaveAMaximumLength() {
+        assertThrows(IllegalArgumentException.class, () -> MaintenanceOrder.open(ORDER, VEHICLE, VehicleType.BIKE,
+                MaintenanceReason.BREAKDOWN, MESA, T0, "x".repeat(MaintenanceOrder.MAX_NOTES + 1), null));
     }
 
     @Test

@@ -165,6 +165,21 @@ class OpenApiContractsTest {
                 required.addAll(requiredFields((io.swagger.v3.oas.models.media.Schema) part));
             }
         }
+        // anyOf / oneOf: un campo es obligatorio si lo es en todas las alternativas.
+        for (List alternatives : new List[] {schema.getAnyOf(), schema.getOneOf()}) {
+            if (alternatives != null && !alternatives.isEmpty()) {
+                List<String> common = null;
+                for (Object alternative : alternatives) {
+                    List<String> fields = requiredFields((io.swagger.v3.oas.models.media.Schema) alternative);
+                    if (common == null) {
+                        common = new ArrayList<>(fields);
+                    } else {
+                        common.retainAll(fields);
+                    }
+                }
+                required.addAll(common);
+            }
+        }
         return required;
     }
 }

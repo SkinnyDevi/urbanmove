@@ -39,7 +39,7 @@ paths:
       description: >
         Roles: maintenance, admin (la Lambda maintenance-detection usa una identidad de servicio con rol admin;
         el formato lo fija el bloque A). Solo puede haber una orden activa por vehículo: si ya existe,
-        devuelve 409 con la orden existente en `detail`.
+        devuelve 409 con `type: /problems/active-order-exists` y el id de la orden activa en `existingOrderId`.
       parameters:
         - $ref: './common.yaml#/components/parameters/CorrelationId'
         - $ref: './common.yaml#/components/parameters/IdempotencyKey'
@@ -143,7 +143,7 @@ paths:
         '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
         '403': { $ref: './common.yaml#/components/responses/Forbidden' }
         '404': { $ref: './common.yaml#/components/responses/NotFound' }
-        '409': { $ref: './common.yaml#/components/responses/InvalidStateTransition' }
+        '409': { $ref: './common.yaml#/components/responses/ActionConflict' }
 
   /maintenance-orders/{orderId}/start-charging:
     post:
@@ -291,9 +291,9 @@ components:
         zoneId: { $ref: './common.yaml#/components/schemas/ZoneId' }
         status: { $ref: '#/components/schemas/OrderStatus' }
         technicianId:
-          oneOf:
-            - $ref: './common.yaml#/components/schemas/UserId'
-            - type: 'null'
+          type: [string, 'null']
+          pattern: '^usr-[a-z0-9-]+$'
+          description: userId (mismo formato que common.schema.json#/$defs/userId); null si no hay.
         workPerformed:
           type: array
           uniqueItems: true
@@ -313,6 +313,9 @@ components:
           type: [string, 'null']
           format: date-time
         returnZoneId:
-          oneOf:
-            - $ref: './common.yaml#/components/schemas/ZoneId'
-            - type: 'null'
+          type: [string, 'null']
+          pattern: '^[a-z0-9-]+$'
+          description: zoneId (mismo formato que common.schema.json#/$defs/zoneId); null hasta devolver el vehículo.
+        cancellationReason:
+          type: [string, 'null']
+          description: Motivo indicado al cancelar (solo en CANCELLED).

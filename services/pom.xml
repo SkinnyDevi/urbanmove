@@ -2,7 +2,7 @@
 <!--
   Proyecto padre de los microservicios Java de UrbanMove.
   Fija en un solo sitio la versión de Java, las librerías y los plugins.
-  Pila: Javalin (HTTP) + JDBC con HikariCP y Flyway (PostgreSQL) + Jackson + Nimbus (JWT) + Logback.
+  Pila: Javalin (HTTP) + AWS SDK v2 (DynamoDB, SNS) o JDBC/PostgreSQL + Jackson + Nimbus (JWT) + Logback.
   Sin framework de inyección: cada servicio conecta sus piezas a mano en su clase *Application.
 
   Uso (desde la carpeta services/):
@@ -39,6 +39,7 @@
     <version.nimbus-jose-jwt>10.9.1</version.nimbus-jose-jwt>
     <version.slf4j>2.0.20</version.slf4j>
     <version.logback>1.5.38</version.logback>
+    <version.aws-sdk>2.57.6</version.aws-sdk>
 
     <version.junit>6.0.3</version.junit>
     <version.testcontainers>2.0.5</version.testcontainers>
@@ -52,6 +53,13 @@
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
         <version>${version.jackson}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${version.aws-sdk}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

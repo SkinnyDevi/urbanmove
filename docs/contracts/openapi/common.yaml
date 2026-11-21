@@ -212,6 +212,20 @@ components:
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/InvalidStateTransitionProblem' }
+    ActionConflict:
+      description: >
+        La acción no se puede aplicar. El campo `type` indica el motivo:
+        `/problems/invalid-state-transition` (con `currentState` y `action`),
+        `/problems/concurrent-update` (otra petición modificó el recurso a la vez; volver a leerlo y reintentar)
+        o `/problems/idempotency-key-reused` (la clave ya se usó para otra operación).
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+      content:
+        application/problem+json:
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/InvalidStateTransitionProblem'
+              - $ref: '#/components/schemas/Problem'
     Conflict:
       description: Conflicto con el estado actual del recurso.
       headers:

@@ -27,22 +27,25 @@ services:
       timeout: 3s
       retries: 10
 
-  # SNS, SQS, S3, Lambda y EventBridge en local.
+  # DynamoDB, SNS, SQS, S3, Lambda y EventBridge en local.
   # 4.14.0: la misma versión que la práctica 4. Las versiones nuevas (2026.x) piden cuenta y LOCALSTACK_AUTH_TOKEN.
+  # Al arrancar, init-aws.sh crea el tópico SNS y una cola SQS (con su DLQ) por consumidor.
   localstack:
     image: localstack/localstack:4.14.0
     environment:
-      SERVICES: sns,sqs,s3,lambda,events,logs
+      SERVICES: dynamodb,sns,sqs,s3,lambda,events,logs
       AWS_DEFAULT_REGION: us-east-1
     ports:
       - "4566:4566"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./infra/local/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health > /dev/null"]
-      interval: 10s
+      # "healthy" solo cuando init-aws.sh ha terminado (tópico y colas creados)
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/init/ready | grep -Eq '\"completed\": ?true'"]
+      interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 30
 
   zones:
     build:
@@ -57,6 +60,27 @@ services:
       - "8083:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  maintenance:
+    build:
+      context: ./services
+      dockerfile: maintenance/Dockerfile
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      # Credenciales ficticias que acepta LocalStack (no son secretos). En ECS se usa el rol LabRole.
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DYNAMODB_TABLE: urbanmove-maintenance
+      DYNAMODB_CREATE_TABLE: "true"      # en AWS la tabla la crea Terraform
+      EVENTS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:urbanmove-domain-events
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+    ports:
+      - "8084:8080"
+    depends_on:
+      localstack:
         condition: service_healthy
     restart: unless-stopped
 

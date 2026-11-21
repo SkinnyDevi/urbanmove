@@ -44,6 +44,22 @@ Los tres tipos de test:
 6. En `docker-compose.yml`: añade el servicio, su nombre a `SERVICE_DATABASES` y su `<NOMBRE>_DB_PASSWORD`; añade esa variable a `.env.example`.
 7. Adapta el test de contrato al `.yaml` del servicio.
 
+## maintenance: DynamoDB y eventos
+
+`maintenance` sigue la misma plantilla, pero con **DynamoDB** en lugar de PostgreSQL y **publicando eventos** en SNS ([ADR-005](../docs/adr/ADR-005-dynamodb-y-outbox.md)). Es el modelo para los servicios que publican eventos:
+
+| Pieza | Dónde está |
+|---|---|
+| Puertos de la aplicación (lectura, escritura, idempotencia, publicación) | `application/port/` |
+| Casos de uso: abrir orden y acciones del técnico, con `Idempotency-Key` | `application/OpenMaintenanceOrderUseCase.java`, `PerformOrderActionUseCase.java` |
+| Tabla única y su diseño (`pk`, índice `gsi1`, TTL) | `infrastructure/dynamo/MaintenanceTable.java` |
+| Transacciones con condiciones (una orden activa por vehículo, versión, idempotencia) | `infrastructure/dynamo/DynamoMaintenanceRepository.java` |
+| Envelope de los eventos (`AGENTS.md` 3.2) | `infrastructure/events/EventEnvelopes.java` |
+| Publicación en SNS y reintento de los pendientes (outbox) | `infrastructure/events/SnsOutboxPublisher.java` |
+| Timeouts y reintentos de los clientes de AWS | `infrastructure/aws/AwsClients.java` |
+
+Los tests de integración arrancan **LocalStack 4.14.0** (DynamoDB, SNS y SQS) con Testcontainers, suscriben una cola al tópico y comprueban los eventos que llegan. Los de contrato validan las respuestas contra `maintenance.yaml` y los eventos contra `docs/contracts/asyncapi`.
+
 ## Arrancar en local
 
 Desde la raíz del repo:
@@ -52,7 +68,14 @@ Desde la raíz del repo:
 cp .env.example .env     # rellena las contraseñas y JWT_SECRET
 docker compose up -d --build
 docker compose ps        # postgres, localstack y zones deben estar "healthy"
-curl localhost:8083/health
+curl localhost:8083/health      # zones
+curl localhost:8084/health      # maintenance
+```
+
+LocalStack crea al arrancar el tópico `urbanmove-domain-events` y una cola por consumidor, con su DLQ y su filtro por `eventType` (`infra/local/localstack/init-aws.sh`). Para ver los mensajes que recibe una cola:
+
+```bash
+docker compose exec localstack awslocal sqs receive-message   --queue-url http://localhost:4566/000000000000/availability-queue
 ```
 
 Si ya tienes otro PostgreSQL en el puerto 5432, cambia `POSTGRES_PORT` en `.env`.
@@ -60,5 +83,6 @@ Si ya tienes otro PostgreSQL en el puerto 5432, cambia `POSTGRES_PORT` en `.env`
 ## Decisiones provisionales
 
 - **Formato del JWT**: HS256 con secreto compartido y roles en el claim `roles`. Lo cierra el bloque A; si cambia, solo se toca el constructor de `JwtVerifier`.
-- **Publicación de eventos**: zones no publica eventos, así que la plantilla todavía no incluye el publicador SNS con el envelope. Se añadirá con `maintenance`, que es el primer servicio que publica.
+- **Publicación de eventos**: zones no publica eventos; el modelo para publicar es `maintenance`.
+- **Base de datos**: `maintenance` usa DynamoDB; `zones` sigue en PostgreSQL hasta que se decida migrarlo (ADR-005).
 - **LocalStack 4.14.0**: la misma versión fijada en la práctica 4; las versiones 2026.x necesitan cuenta (`LOCALSTACK_AUTH_TOKEN`).

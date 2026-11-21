@@ -108,7 +108,7 @@ paths:
         '401': { $ref: './common.yaml#/components/responses/Unauthorized' }
         '403': { $ref: './common.yaml#/components/responses/Forbidden' }
         '404': { $ref: './common.yaml#/components/responses/NotFound' }
-        '409': { $ref: './common.yaml#/components/responses/InvalidStateTransition' }
+        '409': { $ref: './common.yaml#/components/responses/ActionConflict' }
 
   /relocation-orders/{orderId}/start:
     post:
@@ -222,9 +222,9 @@ components:
           description: eventId del DemandHotspotDetected que la originó.
         status: { $ref: '#/components/schemas/OrderStatus' }
         assigneeId:
-          oneOf:
-            - $ref: './common.yaml#/components/schemas/UserId'
-            - type: 'null'
+          type: [string, 'null']
+          pattern: '^usr-[a-z0-9-]+$'
+          description: userId (mismo formato que common.schema.json#/$defs/userId); null si no hay.
         vehicleIds:
           type: array
           uniqueItems: true
