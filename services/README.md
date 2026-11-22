@@ -60,6 +60,28 @@ Los tres tipos de test:
 
 Los tests de integración arrancan **LocalStack 4.14.0** (DynamoDB, SNS y SQS) con Testcontainers, suscriben una cola al tópico y comprueban los eventos que llegan. Los de contrato validan las respuestas contra `maintenance.yaml` y los eventos contra `docs/contracts/asyncapi`.
 
+## availability: consumidor de eventos
+
+`availability` es el primer servicio que **consume** eventos: lee su cola SQS (`availability-queue`) y mantiene en DynamoDB el estado operativo de cada vehículo. Su API REST es de solo lectura.
+
+| Pieza | Dónde está |
+|---|---|
+| Traducción del JSON del bus a los hechos que le importan (capa anticorrupción) | `infrastructure/events/EventTranslator.java` |
+| Bucle de lectura de la cola con long polling, ACK y reintentos | `infrastructure/events/SqsEventConsumer.java` |
+| Consumidor idempotente: marca `PROCESSED#eventId` en la misma transacción que el cambio | `application/ApplyVehicleEventUseCase.java` + `infrastructure/dynamo/DynamoVehicleRepository.java` |
+| Índice para "vehículos AVAILABLE en esta zona y de este tipo" | `infrastructure/dynamo/AvailabilityTable.java` |
+| Flota inicial (los 100 vehículos del generador) | `infrastructure/seed/JsonFleetSeedSource.java` + `resources/seed/vehicles.json` |
+
+Qué hace con cada mensaje:
+
+| Caso | Resultado | ¿Se borra de la cola? |
+|---|---|---|
+| Evento aplicado | El vehículo cambia de estado o de zona | Sí |
+| Mismo `eventId` otra vez | "Duplicate event ignored" | Sí |
+| Transición ilegal (p. ej. fuera de orden) | Se registra como `REJECTED` | Sí |
+| Evento que availability no consume | Se ignora | Sí |
+| Vehículo desconocido, JSON roto, DynamoDB caído | Error en el log | **No**: SQS lo reintenta y, tras 3 intentos, va a la DLQ |
+
 ## Arrancar en local
 
 Desde la raíz del repo:
@@ -68,6 +90,7 @@ Desde la raíz del repo:
 cp .env.example .env     # rellena las contraseñas y JWT_SECRET
 docker compose up -d --build
 docker compose ps        # postgres, localstack y zones deben estar "healthy"
+curl localhost:8082/health      # availability
 curl localhost:8083/health      # zones
 curl localhost:8084/health      # maintenance
 ```

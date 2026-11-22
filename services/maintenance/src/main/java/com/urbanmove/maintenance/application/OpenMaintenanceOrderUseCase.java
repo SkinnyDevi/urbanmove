@@ -14,15 +14,8 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Caso de uso: abrir una orden de mantenimiento (estado PENDING).
- *
- * <p>Lo usan el técnico desde la app y la Lambda maintenance-detection, que envía como
- * Idempotency-Key el eventId del VehicleBatteryLow: si SQS le entrega el evento dos veces,
- * la segunda llamada devuelve la misma orden sin crear otra (AGENTS.md 5.5).
- */
+/** Caso de uso: abrir una orden de mantenimiento (estado PENDING). */
 public final class OpenMaintenanceOrderUseCase {
-
     static final String OPERATION = "OPEN";
 
     private static final Logger log = LoggerFactory.getLogger(OpenMaintenanceOrderUseCase.class);
@@ -52,7 +45,6 @@ public final class OpenMaintenanceOrderUseCase {
         try {
             writer.create(order, new IdempotencyRecord(command.idempotencyKey(), OPERATION, order.orderId()), List.of());
         } catch (DuplicateRequestException e) {
-            // Otra petición idéntica llegó a la vez y se guardó antes: devolvemos la suya.
             return replay(command.idempotencyKey()).orElseThrow(() -> e);
         }
         log.atInfo()

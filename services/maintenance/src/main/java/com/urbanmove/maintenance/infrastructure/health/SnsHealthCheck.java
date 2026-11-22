@@ -6,12 +6,8 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-/**
- * El tópico de eventos existe. Se informa en /health, pero no es crítico: si SNS falla, las
- * órdenes se siguen guardando y los eventos esperan en la tabla (ver {@code critical()}).
- */
+/** Comprueba que el tópico SNS de eventos responde (dependencia no crítica). */
 public final class SnsHealthCheck implements DependencyHealthCheck {
-
     private static final Logger log = LoggerFactory.getLogger(SnsHealthCheck.class);
 
     private final SnsClient sns;

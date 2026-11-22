@@ -63,6 +63,30 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  availability:
+    build:
+      context: ./services
+      dockerfile: availability/Dockerfile
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      # Credenciales ficticias que acepta LocalStack (no son secretos). En ECS se usa el rol LabRole.
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DYNAMODB_TABLE: urbanmove-availability
+      DYNAMODB_CREATE_TABLE: "true"      # en AWS la tabla la crea Terraform
+      # Su cola del bus de eventos (la crea init-aws.sh, con DLQ y filtro por eventType)
+      EVENTS_QUEUE_URL: http://localstack:4566/000000000000/availability-queue
+      # Flota inicial: los 100 vehículos del generador sintético
+      FLEET_SEED_FILE: classpath:seed/vehicles.json
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+    ports:
+      - "8082:8080"
+    depends_on:
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
   maintenance:
     build:
       context: ./services

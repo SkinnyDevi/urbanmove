@@ -1,6 +1,6 @@
 # Máquina de estados del vehículo
 
-Responsable: **bloque B** (responsabilidad transversal). Estado: **BORRADOR, pendiente de revisión por el equipo.**
+Responsable: **bloque B** (responsabilidad transversal).
 
 El enunciado (sección 5) pide documentar qué evento provoca cada cambio de estado del vehículo y qué servicio lo valida. Este documento es esa tabla. El código que la implementa está en:
 
@@ -126,5 +126,5 @@ Ilegales importantes: no se cancela una orden con el vehículo ya retirado, y no
 
 1. **`RETIRED` no tiene evento.** inventory da de baja el activo, pero ningún evento del catálogo se lo dice a availability. Opciones: (a) ampliar el catálogo con `VehicleRetired` (requiere aprobación de todos); (b) que availability lo deje en `WITHDRAWN` para siempre, que en la práctica tampoco se puede reservar. **Propuesta: (a)**, porque `dm_fleet` necesita contar los `RETIRED`.
 2. **¿Quién evita la doble reserva?** La máquina de estados rechaza reservar un vehículo `RESERVED`, pero eso solo protege dentro de availability. Si reservations crea la reserva y availability se entera después por el evento, dos usuarios pueden reservar a la vez. Hay que acordarlo con el bloque A: o reservations pregunta a availability de forma síncrona con bloqueo optimista (`version`, AGENTS.md 5.5), o reservations mantiene su propia copia de disponibilidad.
-3. **Eventos fuera de orden.** SQS no garantiza el orden: puede llegar `RideStarted` antes que `VehicleReserved`. Con la tabla actual, `AVAILABLE → startRide` es legal, así que funciona; pero un `VehicleReserved` que llega tarde sobre un vehículo `IN_USE` sería rechazado. El consumidor debe registrar el rechazo con el `correlationId` y hacer ACK (no reintentar), igual que con los duplicados.
-4. **Vehículos nuevos.** Se asume que `VehiclePurchased` deja el vehículo `AVAILABLE` en su zona inicial. Si se quiere una revisión antes de la primera salida, entraría como `WITHDRAWN` con una orden de tipo `INSPECTION`.
+3. **Eventos fuera de orden.** SQS no garantiza el orden: puede llegar `RideStarted` antes que `VehicleReserved`. Con la tabla actual, `AVAILABLE → startRide` es legal, así que funciona; pero un `VehicleReserved` que llega tarde sobre un vehículo `IN_USE` sería rechazado. **Implementado así en availability:** el rechazo se registra (log `WARN` con `correlationId`, estado y acción), el evento se marca como procesado y se hace ACK, sin reintentar ni mandarlo a la DLQ. En cambio, un evento de un vehículo que availability todavía no conoce sí se reintenta y, tras 3 intentos, va a la DLQ.
+4. **Vehículos nuevos.** `VehiclePurchased` deja el vehículo `AVAILABLE` en su zona inicial (implementado). La flota inicial de la demo son los 100 vehículos del generador (`seed/vehicles.json`), que availability carga al arrancar si no existen. Si se quiere una revisión antes de la primera salida, entraría como `WITHDRAWN` con una orden de tipo `INSPECTION`.

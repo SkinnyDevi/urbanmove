@@ -21,15 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests de los contratos REST de docs/contracts/openapi/.
- *
- * <p>Comprueban que cada fichero es OpenAPI 3.1 válido con todas las referencias resueltas, y que
- * cumple las reglas del AGENTS.md: GET /health sin autenticación (6.3), JWT en el resto (3.1),
- * cabecera X-Correlation-Id (6.1), errores en RFC 7807 (3.1) e Idempotency-Key en los POST (5.5).
- */
+/** Tests de los contratos REST de docs/contracts/openapi/. */
 class OpenApiContractsTest {
-
     private static final Path OPENAPI_DIR = ContractsLocator.findRepoRoot().resolve("docs/contracts/openapi");
 
     static Stream<Path> serviceContracts() throws IOException {
@@ -150,7 +143,6 @@ class OpenApiContractsTest {
         }
     }
 
-    /** Campos obligatorios de un esquema, incluyendo los de sus allOf. */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static List<String> requiredFields(io.swagger.v3.oas.models.media.Schema schema) {
         List<String> required = new ArrayList<>();
@@ -165,7 +157,7 @@ class OpenApiContractsTest {
                 required.addAll(requiredFields((io.swagger.v3.oas.models.media.Schema) part));
             }
         }
-        // anyOf / oneOf: un campo es obligatorio si lo es en todas las alternativas.
+
         for (List alternatives : new List[] {schema.getAnyOf(), schema.getOneOf()}) {
             if (alternatives != null && !alternatives.isEmpty()) {
                 List<String> common = null;

@@ -13,8 +13,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/** Casos de uso de zones con un repositorio en memoria. */
 class ZoneUseCasesTest {
-
     private static final Zone TRIANA = zone("triana");
     private static final Zone TAFIRA = zone("tafira");
 

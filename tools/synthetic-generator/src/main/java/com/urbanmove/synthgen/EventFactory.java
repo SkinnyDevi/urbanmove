@@ -10,17 +10,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Construye los eventos con el formato exacto de docs/contracts/asyncapi/: el sobre (eventId, timestamp,
- * source...) y la carta (payload). Un método por tipo de evento.
- *
- * <p>Los tiempos se reciben en segundos desde el inicio de la simulación y se convierten aquí a fechas.
- */
+/** Construye los eventos con el formato exacto de los contratos AsyncAPI. */
 public final class EventFactory {
-
     public static final String SCHEMA_VERSION = "1.0.0";
 
-    /** Productor oficial de cada evento (debe coincidir con los contratos). */
     public static final Map<String, String> PRODUCERS = Map.of(
             "UserRegistered", "identity",
             "VehiclePurchased", "acquisitions",
@@ -45,7 +38,6 @@ public final class EventFactory {
         this.ids = ids;
     }
 
-    /** Segundos desde el inicio -> "2026-11-09T07:15:00.000Z". */
     public String ts(long t) {
         return TIMESTAMP.format(start.plusSeconds(t));
     }
@@ -66,8 +58,6 @@ public final class EventFactory {
         return JSON.objectNode().put("amount", amount).put("currency", "EUR");
     }
 
-    // ------------------------------------------------------------------ usuarios y flota
-
     public ObjectNode userRegistered(long t, String corr, User user) {
         return event(t, "UserRegistered", corr, JSON.objectNode()
                 .put("userId", user.userId).put("email", user.email)
@@ -82,8 +72,6 @@ public final class EventFactory {
         payload.put("initialZoneId", vehicle.zoneId);
         return event(t, "VehiclePurchased", corr, payload);
     }
-
-    // ------------------------------------------------------------------ reservas
 
     private ObjectNode reservationBase(String reservationId, Vehicle vehicle, User user) {
         return JSON.objectNode()
@@ -112,14 +100,12 @@ public final class EventFactory {
                 .put("reservedAt", ts(reservedAt)).put("expiredAt", ts(t)));
     }
 
-    // ------------------------------------------------------------------ viajes
-
     public ObjectNode rideStarted(long t, String corr, String rideId, Vehicle vehicle, User user,
                                   String reservationId) {
         return event(t, "RideStarted", corr, JSON.objectNode()
                 .put("rideId", rideId).put("vehicleId", vehicle.vehicleId)
                 .put("vehicleType", vehicle.type.name()).put("userId", user.userId)
-                .put("reservationId", reservationId)   // null si se cogió sin reservar
+                .put("reservationId", reservationId)
                 .put("originZoneId", vehicle.zoneId).put("startedAt", ts(t)));
     }
 
@@ -133,8 +119,6 @@ public final class EventFactory {
         payload.set("preliminaryCost", money(cost));
         return event(t, "RideFinished", corr, payload);
     }
-
-    // ------------------------------------------------------------------ telemetría y mantenimiento
 
     public ObjectNode batteryLow(long t, String corr, Vehicle vehicle, int threshold, double[] location) {
         ObjectNode payload = JSON.objectNode()

@@ -1,12 +1,7 @@
 package com.urbanmove.maintenance.domain;
 
-/**
- * Patrón State (AGENTS.md 5.3) para la orden de mantenimiento.
- *
- * <p>Por defecto toda acción es ilegal; cada estado sobrescribe solo las que admite.
- */
+/** Patrón State para la orden de mantenimiento. */
 sealed interface MaintenanceOrderState {
-
     MaintenanceOrderStatus status();
 
     default MaintenanceOrderState withdrawForMaintenance() {
@@ -49,7 +44,6 @@ sealed interface MaintenanceOrderState {
         };
     }
 
-    /** Orden creada (p. ej. por la Lambda maintenance-detection); el vehículo sigue en la calle. */
     final class Pending implements MaintenanceOrderState {
         static final Pending INSTANCE = new Pending();
 
@@ -69,7 +63,6 @@ sealed interface MaintenanceOrderState {
 
         public MaintenanceOrderState startRepair() { return Repairing.INSTANCE; }
 
-        /** Solo revisión: no hacía falta cargar ni reparar. */
         public MaintenanceOrderState markReadyForService() { return ReadyForService.INSTANCE; }
     }
 
@@ -78,7 +71,6 @@ sealed interface MaintenanceOrderState {
 
         public MaintenanceOrderStatus status() { return MaintenanceOrderStatus.CHARGING; }
 
-        /** Al cargarlo se descubre una avería. */
         public MaintenanceOrderState startRepair() { return Repairing.INSTANCE; }
 
         public MaintenanceOrderState markReadyForService() { return ReadyForService.INSTANCE; }
@@ -89,7 +81,6 @@ sealed interface MaintenanceOrderState {
 
         public MaintenanceOrderStatus status() { return MaintenanceOrderStatus.REPAIRING; }
 
-        /** Tras la reparación hay que cargarlo. */
         public MaintenanceOrderState startCharging() { return Charging.INSTANCE; }
 
         public MaintenanceOrderState markReadyForService() { return ReadyForService.INSTANCE; }

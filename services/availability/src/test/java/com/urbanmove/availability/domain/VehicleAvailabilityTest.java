@@ -16,16 +16,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/** Máquina de estados del vehículo: todas las transiciones válidas e inválidas. */
 class VehicleAvailabilityTest {
-
     private static final VehicleId VEHICLE = new VehicleId("veh-0042");
     private static final ZoneId TAFIRA = new ZoneId("tafira");
     private static final ZoneId MESA = new ZoneId("mesa-y-lopez");
+    private static final java.time.Instant T0 = java.time.Instant.parse("2026-11-15T10:00:00Z");
 
-    /**
-     * Matriz de transiciones esperada: es la misma tabla que docs/architecture/vehicle-state-machine.md.
-     * Lo que no aparece aquí es ilegal y debe lanzar InvalidStateTransitionError.
-     */
     private static final Map<VehicleStatus, Map<VehicleAction, VehicleStatus>> ALLOWED = new EnumMap<>(VehicleStatus.class);
 
     static {
@@ -58,7 +55,8 @@ class VehicleAvailabilityTest {
     }
 
     private static VehicleAvailability vehicleIn(VehicleStatus status) {
-        return VehicleAvailability.rehydrate(VEHICLE, VehicleType.SCOOTER, TAFIRA, status, false);
+        return VehicleAvailability.rehydrate(new VehicleAvailability.Snapshot(VEHICLE, VehicleType.SCOOTER, TAFIRA, status,
+                false, T0, 7));
     }
 
     private static void apply(VehicleAvailability vehicle, VehicleAction action) {
@@ -106,7 +104,7 @@ class VehicleAvailabilityTest {
 
     @Test
     void aPurchasedVehicleStartsAvailableInItsInitialZone() {
-        VehicleAvailability vehicle = VehicleAvailability.registerPurchased(VEHICLE, VehicleType.BIKE, TAFIRA);
+        VehicleAvailability vehicle = VehicleAvailability.registerPurchased(VEHICLE, VehicleType.BIKE, TAFIRA, T0);
 
         assertEquals(AVAILABLE, vehicle.status());
         assertEquals(TAFIRA, vehicle.zoneId());
@@ -131,7 +129,6 @@ class VehicleAvailabilityTest {
 
     @Nested
     class LowBatteryWhileBusy {
-
         @Test
         void lowBatteryDuringARideLeavesTheVehicleLowBatteryWhenTheRideEnds() {
             VehicleAvailability vehicle = vehicleIn(IN_USE);
@@ -172,7 +169,6 @@ class VehicleAvailabilityTest {
 
     @Nested
     class Zones {
-
         @Test
         void finishingARideLeavesTheVehicleInTheDestinationZone() {
             VehicleAvailability vehicle = vehicleIn(IN_USE);
@@ -198,15 +194,31 @@ class VehicleAvailabilityTest {
 
     @Test
     void theFullMaintenanceCycleSeenFromAvailability() {
-        VehicleAvailability vehicle = VehicleAvailability.registerPurchased(VEHICLE, VehicleType.SCOOTER, TAFIRA);
+        VehicleAvailability vehicle = VehicleAvailability.registerPurchased(VEHICLE, VehicleType.SCOOTER, TAFIRA, T0);
 
-        vehicle.reportLowBattery();          // VehicleBatteryLow
-        vehicle.withdrawForMaintenance();    // VehicleWithdrawnForMaintenance
+        vehicle.reportLowBattery();
+        vehicle.withdrawForMaintenance();
         assertEquals(WITHDRAWN, vehicle.status());
 
-        vehicle.returnToService(MESA);       // VehicleReturnedToService
+        vehicle.returnToService(MESA);
         assertEquals(AVAILABLE, vehicle.status());
         assertEquals(MESA, vehicle.zoneId());
+    }
+
+    @Test
+    void aPurchasedVehicleStartsAtVersionZeroAndKeepsItsTimestamp() {
+        VehicleAvailability vehicle = VehicleAvailability.registerPurchased(VEHICLE, VehicleType.BIKE, TAFIRA, T0);
+
+        assertEquals(0, vehicle.version());
+        assertEquals(T0, vehicle.snapshot().updatedAt());
+    }
+
+    @Test
+    void snapshotAndRehydrateKeepEverything() {
+        VehicleAvailability vehicle = vehicleIn(IN_USE);
+        vehicle.reportLowBattery();
+
+        assertEquals(vehicle.snapshot(), VehicleAvailability.rehydrate(vehicle.snapshot()).snapshot());
     }
 
     @Test

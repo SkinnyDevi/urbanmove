@@ -15,9 +15,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.slf4j.event.KeyValuePair;
 
-/** El formato de log es el de AGENTS.md 6.2. */
+/** Comprueba el formato JSON de los logs. */
 class JsonLogEncoderTest {
-
     private final JsonLogEncoder encoder = new JsonLogEncoder();
 
     {

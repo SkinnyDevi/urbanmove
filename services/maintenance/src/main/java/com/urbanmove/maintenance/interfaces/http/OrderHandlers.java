@@ -29,14 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-/**
- * Adaptador REST de docs/contracts/openapi/maintenance.yaml.
- *
- * <p>Solo traduce HTTP ↔ casos de uso (AGENTS.md 4.2, SRP): lee y valida la petición, llama al
- * caso de uso y escribe la respuesta. Las reglas están en el dominio y en los casos de uso.
- */
+/** Adaptador REST de docs/contracts/openapi/maintenance.yaml. */
 public final class OrderHandlers {
-
     private final OpenMaintenanceOrderUseCase open;
     private final PerformOrderActionUseCase act;
     private final GetMaintenanceOrderUseCase get;
@@ -53,7 +47,6 @@ public final class OrderHandlers {
         this.parser = new RequestParser(json);
     }
 
-    /** operationId: openMaintenanceOrder */
     public void openOrder(Context ctx) {
         String key = RequestParser.idempotencyKey(ctx);
         RequestParser.Body body = parser.body(ctx,
@@ -74,7 +67,6 @@ public final class OrderHandlers {
         ctx.status(result.replayed() ? HttpStatus.OK : HttpStatus.CREATED).json(OrderResponse.from(result.order()));
     }
 
-    /** operationId: listMaintenanceOrders */
     public void listOrders(Context ctx) {
         List<FieldError> errors = new ArrayList<>();
         Set<MaintenanceOrderStatus> statuses = EnumSet.noneOf(MaintenanceOrderStatus.class);
@@ -100,12 +92,10 @@ public final class OrderHandlers {
         ctx.json(new OrderResponse.Page(page.items().stream().map(OrderResponse::from).toList(), page.nextCursor()));
     }
 
-    /** operationId: getMaintenanceOrder */
     public void getOrder(Context ctx) {
         ctx.json(OrderResponse.from(get.execute(orderId(ctx))));
     }
 
-    /** operationId: withdrawVehicle. El técnico es el usuario del JWT. */
     public void withdraw(Context ctx) {
         TechnicianId technician;
         try {
@@ -118,22 +108,18 @@ public final class OrderHandlers {
                 technician, null, null)));
     }
 
-    /** operationId: startCharging */
     public void startCharging(Context ctx) {
         simpleAction(ctx, MaintenanceAction.START_CHARGING);
     }
 
-    /** operationId: startRepair */
     public void startRepair(Context ctx) {
         simpleAction(ctx, MaintenanceAction.START_REPAIR);
     }
 
-    /** operationId: markReadyForService */
     public void markReady(Context ctx) {
         simpleAction(ctx, MaintenanceAction.MARK_READY_FOR_SERVICE);
     }
 
-    /** operationId: returnToService */
     public void returnToService(Context ctx) {
         String key = RequestParser.idempotencyKey(ctx);
         RequestParser.Body body = parser.body(ctx, Set.of("zoneId"));
@@ -143,7 +129,6 @@ public final class OrderHandlers {
                 MaintenanceAction.RETURN_TO_SERVICE, null, zone, null)));
     }
 
-    /** operationId: cancelOrder */
     public void cancel(Context ctx) {
         String key = RequestParser.idempotencyKey(ctx);
         RequestParser.Body body = parser.body(ctx, Set.of("reason"));

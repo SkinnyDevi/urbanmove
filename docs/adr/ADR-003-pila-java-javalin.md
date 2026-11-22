@@ -1,7 +1,5 @@
 # ADR-003 · Pila de los microservicios Java: Javalin sin framework de inyección
 
-- **Estado:** aceptada (propuesta por el bloque B, pendiente de confirmar por el equipo)
-- **Fecha:** 21 de noviembre de 2026
 
 ## Contexto
 

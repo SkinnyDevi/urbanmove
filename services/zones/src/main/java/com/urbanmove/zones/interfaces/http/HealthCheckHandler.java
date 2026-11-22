@@ -8,12 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * GET /health (AGENTS.md 6.3): 200 si todas las dependencias responden, 503 si no,
- * para que Docker Compose y ECS reinicien el contenedor. Formato: Health de common.yaml.
- */
+/** GET /health: 200 si las dependencias críticas responden y 503 si no. */
 public final class HealthCheckHandler implements Handler {
-
     public record HealthResponse(String status, String service, Map<String, String> checks) {
     }
 

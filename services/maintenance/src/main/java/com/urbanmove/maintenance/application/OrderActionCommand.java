@@ -6,14 +6,10 @@ import com.urbanmove.maintenance.domain.Identifiers.ZoneId;
 import com.urbanmove.maintenance.domain.MaintenanceAction;
 import java.util.Objects;
 
-/**
- * POST /maintenance-orders/{id}/{acción}. Solo algunas acciones usan algunos campos:
- * {@code technician} para retirar, {@code returnZone} para devolver, {@code cancellationReason} para cancelar.
- */
+/** Datos validados de una acción del técnico sobre una orden. */
 public record OrderActionCommand(String idempotencyKey, String correlationId, MaintenanceOrderId orderId,
                                  MaintenanceAction action, TechnicianId technician, ZoneId returnZone,
                                  String cancellationReason) {
-
     public OrderActionCommand {
         Objects.requireNonNull(idempotencyKey, "idempotencyKey");
         Objects.requireNonNull(correlationId, "correlationId");

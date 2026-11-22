@@ -3,11 +3,8 @@ package com.urbanmove.contracts;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Encuentra la carpeta de contratos (docs/contracts/asyncapi).
- */
+/** Encuentra la carpeta de contratos (docs/contracts/asyncapi). */
 public final class ContractsLocator {
-
     public static final String CONTRACTS_RELATIVE_PATH = "docs/contracts/asyncapi";
     public static final String ENV_VARIABLE = "URBANMOVE_CONTRACTS_DIR";
     public static final String SYSTEM_PROPERTY = "urbanmove.contracts.dir";
@@ -15,7 +12,6 @@ public final class ContractsLocator {
     private ContractsLocator() {
     }
 
-    /** Raíz del repo: la primera carpeta, subiendo desde la actual, que contiene docs/contracts/asyncapi. */
     public static Path findRepoRoot() {
         return findRepoRoot(Path.of("").toAbsolutePath());
     }

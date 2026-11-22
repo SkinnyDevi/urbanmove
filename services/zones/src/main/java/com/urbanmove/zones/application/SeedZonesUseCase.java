@@ -8,13 +8,8 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Caso de uso: cargar las zonas iniciales al arrancar.
- *
- * <p>Es idempotente: si se ejecuta dos veces, o en dos réplicas a la vez, no duplica zonas.
- */
+/** Caso de uso: cargar las zonas iniciales al arrancar. */
 public final class SeedZonesUseCase {
-
     private static final Logger log = LoggerFactory.getLogger(SeedZonesUseCase.class);
 
     private final ZoneSeedSource source;
@@ -25,7 +20,6 @@ public final class SeedZonesUseCase {
         this.writer = Objects.requireNonNull(writer);
     }
 
-    /** @return cuántas zonas nuevas se han guardado */
     public int execute() {
         List<Zone> zones = source.load();
         int inserted = writer.saveIfAbsent(zones);

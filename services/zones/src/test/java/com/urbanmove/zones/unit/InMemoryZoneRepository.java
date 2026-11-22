@@ -12,12 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Fake en memoria de los puertos (AGENTS.md 4.2, LSP): cumple el mismo contrato que
- * JdbcZoneRepository, así los tests unitarios no necesitan base de datos.
- */
+/** Repositorio en memoria con el mismo comportamiento que JdbcZoneRepository. */
 final class InMemoryZoneRepository implements ZoneReader, ZoneWriter {
-
     private final Map<ZoneId, Zone> zones = new ConcurrentHashMap<>();
 
     @Override

@@ -51,20 +51,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
-/**
- * Adaptador DynamoDB de los puertos de lectura, escritura e idempotencia.
- *
- * <p>Cada escritura es una transacción ({@code TransactWriteItems}) con condiciones, como las
- * escrituras condicionales de la práctica 6:
- * <ul>
- *   <li>{@code attribute_not_exists(pk)} en el candado del vehículo: no puede haber dos órdenes activas;</li>
- *   <li>{@code attribute_not_exists(pk)} en la Idempotency-Key: una petición repetida no se aplica dos veces;</li>
- *   <li>{@code rowVersion = :expected} en la orden: bloqueo optimista entre peticiones simultáneas.</li>
- * </ul>
- * Los eventos se escriben en la misma transacción (outbox) y se publican después.
- */
+/** Adaptador DynamoDB de los puertos de lectura, escritura e idempotencia. */
 public final class DynamoMaintenanceRepository implements MaintenanceOrderReader, MaintenanceOrderWriter, IdempotencyStore {
-
     private static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     private static final Pattern CURSOR = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T[0-9:.]+Z#mnt-[a-z0-9-]+$");
     private static final String CONDITIONAL_CHECK_FAILED = "ConditionalCheckFailed";
@@ -80,8 +68,6 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
         this.envelopes = Objects.requireNonNull(envelopes);
         this.clock = Objects.requireNonNull(clock);
     }
-
-    // ---------------------------------------------------------------- lectura
 
     @Override
     public Optional<MaintenanceOrder> findById(MaintenanceOrderId id) {
@@ -101,12 +87,6 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
                 new MaintenanceOrderId(item.get("orderId").s())));
     }
 
-    /**
-     * Una consulta al índice por cada estado pedido (ordenada por fecha), con los demás filtros
-     * en {@code FilterExpression}, y se mezclan los resultados. El cursor es la clave de
-     * ordenación del último elemento devuelto. Las lecturas del índice son eventualmente
-     * consistentes: una orden recién creada puede tardar un instante en aparecer.
-     */
     @Override
     public OrderPage search(OrderSearch search) {
         String after = decodeCursor(search.cursor());
@@ -168,17 +148,15 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
         return items.size() > wanted ? items.subList(0, wanted) : items;
     }
 
-    // ---------------------------------------------------------------- escritura
-
     @Override
     public void create(MaintenanceOrder order, IdempotencyRecord idempotency, List<OutgoingEvent> events) {
         String vehicleId = order.vehicleId().value();
         List<TransactWriteItem> items = new ArrayList<>();
-        items.add(put(toItem(order.snapshot(), 0), "attribute_not_exists(" + PK + ")", null));        // 0: orden
-        items.add(put(Map.of(PK, s(MaintenanceTable.vehicleLockKey(vehicleId)),                        // 1: candado
+        items.add(put(toItem(order.snapshot(), 0), "attribute_not_exists(" + PK + ")", null));
+        items.add(put(Map.of(PK, s(MaintenanceTable.vehicleLockKey(vehicleId)),
                         "orderId", s(order.orderId().value())),
                 "attribute_not_exists(" + PK + ")", null));
-        items.add(put(idempotencyItem(idempotency), "attribute_not_exists(" + PK + ")", null));      // 2: idempotencia
+        items.add(put(idempotencyItem(idempotency), "attribute_not_exists(" + PK + ")", null));
         events.forEach(event -> items.add(put(outboxItem(event), null, null)));
 
         try {
@@ -199,11 +177,10 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
     public void update(MaintenanceOrder order, long expectedVersion, IdempotencyRecord idempotency,
                        List<OutgoingEvent> events) {
         List<TransactWriteItem> items = new ArrayList<>();
-        items.add(put(toItem(order.snapshot(), expectedVersion + 1), "rowVersion = :expected",            // 0: orden
+        items.add(put(toItem(order.snapshot(), expectedVersion + 1), "rowVersion = :expected",
                 Map.of(":expected", n(expectedVersion))));
-        items.add(put(idempotencyItem(idempotency), "attribute_not_exists(" + PK + ")", null));      // 1: idempotencia
+        items.add(put(idempotencyItem(idempotency), "attribute_not_exists(" + PK + ")", null));
         if (!order.isActive()) {
-            // La orden se cierra: se libera el vehículo, pero solo si el candado es de esta orden.
             items.add(TransactWriteItem.builder().delete(d -> d.tableName(table)
                     .key(Map.of(PK, s(MaintenanceTable.vehicleLockKey(order.vehicleId().value()))))
                     .conditionExpression("attribute_not_exists(" + PK + ") OR orderId = :order")
@@ -268,8 +245,6 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
                 "eventType", s(event.event().eventType()),
                 "envelope", s(envelopes.toJson(event)));
     }
-
-    // ---------------------------------------------------------------- conversión orden <-> item
 
     static String sortKey(MaintenanceOrder.Snapshot order) {
         return EventEnvelopes.timestamp(order.createdAt()) + "#" + order.orderId().value();
@@ -348,13 +323,10 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
         return AttributeValue.fromN(Long.toString(value));
     }
 
-    // ---------------------------------------------------------------- cursor opaco
-
     private static String encodeCursor(String sortKey) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(sortKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** @throws IllegalArgumentException si el cursor no es uno de los nuestros */
     private static String decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
             return null;
@@ -365,7 +337,6 @@ public final class DynamoMaintenanceRepository implements MaintenanceOrderReader
                 return sortKey;
             }
         } catch (IllegalArgumentException ignored) {
-            // cae al error de abajo
         }
         throw new IllegalArgumentException("Invalid cursor");
     }

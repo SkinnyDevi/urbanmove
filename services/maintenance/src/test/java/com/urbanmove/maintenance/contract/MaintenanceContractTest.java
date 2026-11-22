@@ -11,13 +11,8 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/**
- * Test de contrato (AGENTS.md 9.4) con el servicio real: las respuestas HTTP cumplen
- * docs/contracts/openapi/maintenance.yaml y los eventos que llegan a SQS cumplen
- * docs/contracts/asyncapi. Si el código y los contratos dejan de coincidir, este test falla.
- */
+/** Comprueba que las respuestas y los eventos del servicio cumplen sus contratos. */
 class MaintenanceContractTest extends MaintenanceApiTestSupport {
-
     private static final String TECH = token("maintenance");
     private static final String ORDERS = "/maintenance-orders";
     private static final String ORDER = "/maintenance-orders/{orderId}";
@@ -64,13 +59,13 @@ class MaintenanceContractTest extends MaintenanceApiTestSupport {
         String vehicle = newVehicle();
         String id = openOrder(vehicle);
 
-        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, TECH, Map.of("vehicleId", "bad")));          // 400
-        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, null, Map.of()));                            // 401
-        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, token("user"), Map.of()));                   // 403
-        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, TECH, openBody(vehicle)));                   // 409
-        assertResponseMatchesContract("GET", ORDER, get(ORDERS + "/mnt-missing", TECH));                       // 404
+        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, TECH, Map.of("vehicleId", "bad")));
+        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, null, Map.of()));
+        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, token("user"), Map.of()));
+        assertResponseMatchesContract("POST", ORDERS, post(ORDERS, TECH, openBody(vehicle)));
+        assertResponseMatchesContract("GET", ORDER, get(ORDERS + "/mnt-missing", TECH));
         assertResponseMatchesContract("POST", ORDER + "/mark-ready",
-                post(ORDERS + "/" + id + "/mark-ready", TECH, null));                                         // 409 transición
+                post(ORDERS + "/" + id + "/mark-ready", TECH, null));
     }
 
     @Test

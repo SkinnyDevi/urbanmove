@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 /** La base de datos acepta conexiones y responde en menos de 3 s. */
 public final class DatabaseHealthCheck implements DependencyHealthCheck {
-
     private static final Logger log = LoggerFactory.getLogger(DatabaseHealthCheck.class);
 
     private final DataSource dataSource;

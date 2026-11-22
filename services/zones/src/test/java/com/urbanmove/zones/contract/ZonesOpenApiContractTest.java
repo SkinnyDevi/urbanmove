@@ -22,13 +22,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Test de contrato (AGENTS.md 9.4): las respuestas reales del servicio cumplen
- * docs/contracts/openapi/zones.yaml. Si alguien cambia el código o el contrato y dejan de
- * coincidir, este test falla.
- */
+/** Comprueba que las respuestas del servicio cumplen zones.yaml. */
 class ZonesOpenApiContractTest extends ZonesApiTestSupport {
-
     private static final ObjectMapper JSON = new ObjectMapper();
     private static OpenAPI contract;
     private static SchemaRegistry registry;
@@ -56,7 +51,6 @@ class ZonesOpenApiContractTest extends ZonesApiTestSupport {
         throw new IllegalStateException("docs/contracts/openapi/zones.yaml not found");
     }
 
-    /** Valida la respuesta contra el esquema que el contrato declara para esa ruta y código. */
     private static void assertMatchesContract(String path, HttpResponse<String> response) throws Exception {
         String status = String.valueOf(response.statusCode());
         var operation = contract.getPaths().get(path).getGet();

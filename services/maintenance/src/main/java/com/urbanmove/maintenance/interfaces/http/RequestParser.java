@@ -12,12 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-/**
- * Lectura y validación de las peticiones según docs/contracts/openapi/maintenance.yaml
- * (AGENTS.md 3.1). Acumula todos los errores para devolverlos juntos en un 400.
- */
+/** Lectura y validación de las peticiones según docs/contracts/openapi/maintenance.yaml. */
 final class RequestParser {
-
     static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
 
     private final ObjectMapper json;
@@ -26,7 +22,6 @@ final class RequestParser {
         this.json = json.copy().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     }
 
-    /** Cabecera Idempotency-Key obligatoria, UUID. */
     static String idempotencyKey(Context ctx) {
         String header = ctx.header(IDEMPOTENCY_HEADER);
         if (header == null || header.isBlank()) {
@@ -39,7 +34,6 @@ final class RequestParser {
         }
     }
 
-    /** Cuerpo JSON con exactamente los campos permitidos (additionalProperties: false). */
     Body body(Context ctx, Set<String> allowed) {
         JsonNode node;
         try {
@@ -59,9 +53,7 @@ final class RequestParser {
         return body;
     }
 
-    /** Campos de un cuerpo JSON, con sus errores acumulados. */
     static final class Body {
-
         private final JsonNode node;
         private final List<FieldError> errors = new ArrayList<>();
 
@@ -96,7 +88,6 @@ final class RequestParser {
             }
         }
 
-        /** Lanza un 400 con todos los errores, si los hay. */
         void validate() {
             if (!errors.isEmpty()) {
                 throw ApiProblem.validation(errors);
@@ -104,7 +95,6 @@ final class RequestParser {
         }
     }
 
-    /** Valor de un enumerado, con un mensaje que lista los valores permitidos. */
     static <E extends Enum<E>> Function<String, E> enumValue(Class<E> type) {
         return text -> {
             try {
@@ -115,7 +105,6 @@ final class RequestParser {
         };
     }
 
-    /** Texto de longitud limitada. */
     static Function<String, String> text(int minLength, int maxLength) {
         return text -> {
             if (text.length() < minLength || text.length() > maxLength) {

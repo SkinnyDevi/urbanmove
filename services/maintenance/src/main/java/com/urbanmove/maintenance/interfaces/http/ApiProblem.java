@@ -5,13 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Error HTTP que se devolverá como RFC 7807. {@code extensions} son campos adicionales del
- * Problem, p. ej. {@code currentState} y {@code action} en una transición ilegal.
- */
+/** Error HTTP que se devolverá como RFC 7807. */
 public final class ApiProblem extends RuntimeException {
-
-    /** Error de validación de un campo, para la lista {@code errors} de un 400. */
     public record FieldError(String field, String message) {
     }
 

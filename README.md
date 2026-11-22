@@ -36,6 +36,7 @@ Necesitas Docker y Java 21 (IntelliJ trae Maven).
 cp .env.example .env            # rellena las contraseñas y JWT_SECRET (nunca se sube al repo)
 docker compose up -d --build
 docker compose ps               # todos los servicios deben acabar en "healthy"
+curl localhost:8082/health      # servicio availability
 curl localhost:8083/health      # servicio zones
 curl localhost:8084/health      # servicio maintenance
 ```

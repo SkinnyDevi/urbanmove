@@ -1,6 +1,6 @@
 # Contratos REST (OpenAPI 3.1)
 
-Responsable transversal: **bloque A**. Estado: **BORRADOR v1.0.0, pendiente de revisión por el equipo.**
+Responsable transversal: **bloque A**.
 
 Ningún servicio puede crear o cambiar un endpoint sin que su contrato esté aquí (`AGENTS.md` 3.1).
 

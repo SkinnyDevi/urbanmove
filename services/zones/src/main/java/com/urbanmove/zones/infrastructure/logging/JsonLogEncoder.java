@@ -12,15 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.event.KeyValuePair;
 
-/**
- * Formato de log JSON común de UrbanMove (AGENTS.md 6.2): una línea por evento con
- * timestamp, level, service, correlationId, message y context.
- *
- * <p>{@code context} reúne el MDC (salvo correlationId) y los pares clave-valor del log, p. ej.
- * {@code log.atInfo().addKeyValue("zoneId", id).log("...")}. Se configura en logback.xml.
- */
+/** Formato de log JSON común: timestamp, level, service, correlationId, message y context. */
 public final class JsonLogEncoder extends EncoderBase<ILoggingEvent> {
-
     public static final String CORRELATION_ID = "correlationId";
 
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -28,7 +21,6 @@ public final class JsonLogEncoder extends EncoderBase<ILoggingEvent> {
 
     private String service = "unknown-service";
 
-    /** Lo fija logback.xml: {@code <service>zones-service</service>}. */
     public void setService(String service) {
         this.service = service;
     }

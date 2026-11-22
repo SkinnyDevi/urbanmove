@@ -29,14 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Comprueban que los datos generados son válidos, coherentes y reproducibles:
- * si alguien cambia el generador y rompe algo, estos tests lo detectan.
- */
+/** Comprueba que los datos generados son válidos, coherentes y reproducibles. */
 class GeneratorTest {
-
     static final ObjectMapper MAPPER = new ObjectMapper();
-    /** Escenario pequeño para que los tests sean rápidos. */
+
     static final Settings SMALL = Settings.defaults().withStartDate(LocalDate.of(2026, 11, 9)).withDays(2)
             .withSeed(7).withVehicles(60).withUsers(120).withTripsPerDay(500);
 
@@ -60,8 +56,6 @@ class GeneratorTest {
     static List<String> asJson(List<ObjectNode> list) {
         return list.stream().map(OutputWriter::toJson).toList();
     }
-
-    // ------------------------------------------------------------------ contratos
 
     @Test
     void everyEventIsValidAgainstTheContracts() {
@@ -87,8 +81,6 @@ class GeneratorTest {
         assertEquals(events.size(), ids.size());
     }
 
-    // ------------------------------------------------------------------ reproducibilidad
-
     @Test
     void sameSeedProducesIdenticalData() {
         assertEquals(asJson(events), asJson(Simulator.generate(SMALL.withValidate(false)).events()));
@@ -98,8 +90,6 @@ class GeneratorTest {
     void differentSeedProducesDifferentData() {
         assertNotEquals(asJson(events), asJson(Simulator.generate(SMALL.withSeed(8).withValidate(false)).events()));
     }
-
-    // ------------------------------------------------------------------ coherencia temporal
 
     @Test
     void eventsAreInChronologicalOrder() {
@@ -111,19 +101,15 @@ class GeneratorTest {
     static final Map<String, String> VALID_TRANSITIONS = Map.ofEntries(
             Map.entry("AVAILABLE|VehicleReserved", "RESERVED"),
             Map.entry("RESERVED|RideStarted", "IN_USE"),
-            Map.entry("AVAILABLE|RideStarted", "IN_USE"),                     // viaje sin reserva previa
+            Map.entry("AVAILABLE|RideStarted", "IN_USE"),
             Map.entry("RESERVED|ReservationCancelled", "AVAILABLE"),
             Map.entry("RESERVED|ReservationExpired", "AVAILABLE"),
             Map.entry("IN_USE|RideFinished", "AVAILABLE"),
             Map.entry("AVAILABLE|VehicleBatteryLow", "LOW_BATTERY"),
             Map.entry("LOW_BATTERY|VehicleWithdrawnForMaintenance", "WITHDRAWN"),
-            Map.entry("AVAILABLE|VehicleWithdrawnForMaintenance", "WITHDRAWN"),   // avería o revisión
+            Map.entry("AVAILABLE|VehicleWithdrawnForMaintenance", "WITHDRAWN"),
             Map.entry("WITHDRAWN|VehicleReturnedToService", "AVAILABLE"));
 
-    /**
-     * Recorre los eventos de cada vehículo y comprueba que cada paso es una transición permitida.
-     * Si un vehículo se reservara dos veces a la vez, fallaría aquí (RESERVED + VehicleReserved).
-     */
     @Test
     void everyVehicleFollowsTheStateMachine() {
         Map<String, String> state = new HashMap<>();
@@ -144,11 +130,6 @@ class GeneratorTest {
         }
     }
 
-    /**
-     * Lo que se deduce de los eventos debe coincidir con el estado real de cada vehículo al acabar.
-     * Detecta vehículos "atascados" (por ejemplo, una reserva cancelada que no libera el vehículo):
-     * esos fallos no aparecen en la secuencia de eventos porque el vehículo simplemente deja de usarse.
-     */
     @Test
     void eventsMatchTheFinalStateOfEveryVehicle() {
         Map<String, String> state = new HashMap<>();
@@ -190,8 +171,6 @@ class GeneratorTest {
             }
         }
     }
-
-    // ------------------------------------------------------------------ flujos y correlationId
 
     @Test
     void rideFlowSharesCorrelationId() {
@@ -264,15 +243,11 @@ class GeneratorTest {
         }
     }
 
-    // ------------------------------------------------------------------ demanda
-
     @Test
     void defaultScenarioProducesDeficitsForTheRelocationEngine() {
         GenerationResult week = Simulator.generate(Settings.defaults().withValidate(false));
         assertTrue(week.zoneHours().stream().anyMatch(ZoneHour::hotspot));
     }
-
-    // ------------------------------------------------------------------ salida en disco
 
     @Test
     void outputUsesDataLakePartitions(@TempDir Path tmp) throws IOException {

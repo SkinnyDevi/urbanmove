@@ -20,13 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Fake en memoria de los puertos (AGENTS.md 4.2, LSP): aplica las mismas condiciones que el
- * repositorio DynamoDB (una orden activa por vehículo, versión, Idempotency-Key única), así los
- * casos de uso se prueban sin red ni Docker.
- */
+/** Almacén en memoria con las mismas condiciones que el repositorio DynamoDB. */
 final class InMemoryMaintenanceStore implements MaintenanceOrderReader, MaintenanceOrderWriter, IdempotencyStore {
-
     private final Map<MaintenanceOrderId, MaintenanceOrder.Snapshot> orders = new HashMap<>();
     private final Map<VehicleId, MaintenanceOrderId> activeByVehicle = new HashMap<>();
     private final Map<String, IdempotencyRecord> idempotency = new HashMap<>();
@@ -93,7 +88,6 @@ final class InMemoryMaintenanceStore implements MaintenanceOrderReader, Maintena
         return Optional.ofNullable(idempotency.get(key));
     }
 
-    /** Simula que otra petición cambió la orden entre la lectura y la escritura. */
     synchronized void bumpVersion(MaintenanceOrderId id) {
         MaintenanceOrder.Snapshot s = orders.get(id);
         orders.put(id, new MaintenanceOrder.Snapshot(s.orderId(), s.vehicleId(), s.vehicleType(), s.reason(),

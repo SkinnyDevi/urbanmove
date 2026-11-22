@@ -18,11 +18,8 @@ import java.util.Objects;
 
 /**
  * Lee las zonas de un fichero JSON con el formato de tools/synthetic-generator/config/zones.json.
- * Los campos que solo usa el generador (demandProfile, popularity) se ignoran.
  */
 public final class JsonZoneSeedSource implements ZoneSeedSource {
-
-    /** Abre el fichero cada vez que se carga la semilla. */
     @FunctionalInterface
     public interface Opener {
         InputStream open() throws IOException;
@@ -38,7 +35,6 @@ public final class JsonZoneSeedSource implements ZoneSeedSource {
         this.json = Objects.requireNonNull(json);
     }
 
-    /** {@code classpath:ruta} lee del jar; cualquier otra cosa es una ruta del sistema de ficheros. */
     public static JsonZoneSeedSource fromLocation(String location, ObjectMapper json) {
         if (location.startsWith("classpath:")) {
             String resource = location.substring("classpath:".length());

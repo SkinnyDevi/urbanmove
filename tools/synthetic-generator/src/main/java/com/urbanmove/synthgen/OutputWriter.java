@@ -18,20 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/**
- * Escribe el resultado en disco:
- * <pre>
- * out/
- * ├── raw/year=YYYY/month=MM/day=DD/source=&lt;servicio&gt;/events.jsonl   como la capa raw del Data Lake
- * ├── events.jsonl                  todos los eventos en orden (para reenviarlos al bus)
- * ├── seed/zones.json, vehicles.json, users.json   datos iniciales para cargar en los servicios
- * ├── ground_truth_zone_hours.csv   foto de cada zona cada hora (para comprobar la analítica)
- * └── summary.json                  resumen de lo generado
- * </pre>
- */
+/** Escribe el resultado en disco. */
 public final class OutputWriter {
-
-    /** Si una carpeta tiene este fichero, sabemos que la creó el generador y se puede sobrescribir. */
     public static final String MARKER = "summary.json";
     private static final ObjectMapper COMPACT = new ObjectMapper();
     private static final ObjectMapper PRETTY = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -66,7 +54,6 @@ public final class OutputWriter {
         }
     }
 
-    /** "2026-11-09T07:15:00.000Z" + "urbanmove.rides" -> raw/year=2026/month=11/day=09/source=rides */
     public static Path rawPartition(ObjectNode event) {
         String date = event.get("timestamp").asText().substring(0, 10);
         String source = event.get("source").asText().substring("urbanmove.".length());
@@ -74,7 +61,6 @@ public final class OutputWriter {
                 "day=" + date.substring(8, 10), "source=" + source);
     }
 
-    /** Vacía la carpeta de salida, pero SOLO si está vacía o la creó el generador antes. */
     static void prepareOutputDir(Path out) throws IOException {
         if (Files.exists(out)) {
             boolean empty;
@@ -131,7 +117,6 @@ public final class OutputWriter {
         }
     }
 
-    /** Para los tests: el JSON compacto de un evento, igual que se escribe en los .jsonl. */
     static String toJson(ObjectNode event) {
         try {
             return COMPACT.writeValueAsString(event);

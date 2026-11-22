@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.sns.SnsClient;
 
 /** El servicio completo contra DynamoDB, SNS y SQS reales (LocalStack). */
 class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
-
     private static final String MAINTENANCE = token("maintenance");
 
     private static boolean isProblemJson(HttpResponse<String> response) {
@@ -51,8 +50,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class MaintenanceFlow {
-
-        /** El flujo de mantenimiento de la defensa (sección 11.2), de principio a fin. */
         @Test
         void fromOpeningToReturningPublishesBothEventsWithTheCorrelationId() {
             String vehicle = newVehicle();
@@ -126,7 +123,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class Idempotency {
-
         @Test
         void repeatingAnOpenWithTheSameKeyReturnsTheSameOrder() {
             String vehicle = newVehicle();
@@ -167,7 +163,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
             assertEquals("/problems/idempotency-key-reused", json(response).get("type").asText());
         }
 
-        /** Dos envíos idénticos a la vez (doble clic, reintento del cliente): una sola orden. */
         @Test
         void simultaneousIdenticalRequestsCreateOneOrder() throws Exception {
             String vehicle = newVehicle();
@@ -184,7 +179,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class OneActiveOrderPerVehicle {
-
         @Test
         void aSecondOrderForTheSameVehicleIs409WithTheActiveOne() {
             String vehicle = newVehicle();
@@ -197,7 +191,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
             assertEquals(first, json(response).get("existingOrderId").asText());
         }
 
-        /** Muchas órdenes distintas a la vez para el mismo vehículo: solo una gana (escritura condicional). */
         @Test
         void underConcurrencyOnlyOneOrderIsCreated() throws Exception {
             String vehicle = newVehicle();
@@ -212,7 +205,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class Validation {
-
         @Test
         void theIdempotencyKeyIsRequired() {
             HttpResponse<String> response = request("POST", "/maintenance-orders", MAINTENANCE, null, null,
@@ -249,7 +241,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class Security {
-
         @Test
         void withoutTokenIs401() {
             HttpResponse<String> response = get("/maintenance-orders", null);
@@ -279,7 +270,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
 
     @Nested
     class Listing {
-
         @Test
         void filtersByVehicleAndStatus() {
             String vehicle = newVehicle();
@@ -324,10 +314,6 @@ class MaintenanceApiIntegrationTest extends MaintenanceApiTestSupport {
         }
     }
 
-    /**
-     * Tolerancia a fallos: si SNS falla al publicar, la orden se guarda igual y el evento queda en
-     * la tabla; el reintento periódico lo publica después. No se pierde ningún evento.
-     */
     @Test
     void anEventThatCouldNotBePublishedIsRelayedLater() {
         String id = openOrder(newVehicle());

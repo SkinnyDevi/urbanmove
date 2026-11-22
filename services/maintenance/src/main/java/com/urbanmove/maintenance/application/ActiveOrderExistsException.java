@@ -3,9 +3,8 @@ package com.urbanmove.maintenance.application;
 import com.urbanmove.maintenance.domain.Identifiers.MaintenanceOrderId;
 import com.urbanmove.maintenance.domain.Identifiers.VehicleId;
 
-/** El vehículo ya tiene una orden activa (pendiente o en el taller): no se abre otra. 409. */
+/** El vehículo ya tiene una orden de mantenimiento activa. */
 public final class ActiveOrderExistsException extends RuntimeException {
-
     private final VehicleId vehicleId;
     private final MaintenanceOrderId existingOrderId;
 
@@ -19,7 +18,6 @@ public final class ActiveOrderExistsException extends RuntimeException {
         return vehicleId;
     }
 
-    /** Puede ser null si la orden activa no se pudo leer. */
     public MaintenanceOrderId existingOrderId() {
         return existingOrderId;
     }

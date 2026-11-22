@@ -11,12 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-/**
- * Valida ficheros de eventos desde la terminal.
- * Termina con código 0 si todo es válido, 1 si hay algún evento inválido y 2 si se usa mal.
- */
+/** Valida ficheros de eventos desde la terminal. */
 public final class ValidatorCli {
-
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private ValidatorCli() {

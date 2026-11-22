@@ -14,17 +14,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Convierte un evento de dominio en el JSON del envelope común (AGENTS.md 3.2,
- * docs/contracts/asyncapi/schemas/envelope.schema.json). Los tests de contrato validan su salida
- * contra los esquemas de cada evento.
- */
+/** Convierte un evento de dominio en el JSON del envelope común. */
 public final class EventEnvelopes {
-
     public static final String SOURCE = "urbanmove.maintenance";
     public static final String SCHEMA_VERSION = "1.0.0";
 
-    /** UTC con milisegundos, como los ejemplos de los contratos: 2026-11-15T10:30:00.000Z */
     private static final DateTimeFormatter TIMESTAMP =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
@@ -54,7 +48,6 @@ public final class EventEnvelopes {
         }
     }
 
-    /** Un caso por evento: el compilador avisa si se añade un evento sin su payload (interfaz sellada). */
     private static Map<String, Object> payload(DomainEvent event) {
         Map<String, Object> payload = new LinkedHashMap<>();
         switch (event) {

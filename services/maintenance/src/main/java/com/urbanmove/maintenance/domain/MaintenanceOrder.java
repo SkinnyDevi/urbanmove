@@ -18,27 +18,16 @@ import java.util.UUID;
 
 /**
  * Agregado orden de mantenimiento: ciclo retirada → carga/reparación/revisión → vuelta al servicio.
- *
- * <p>Las transiciones las decide {@link MaintenanceOrderState}. Al retirar y al devolver el
- * vehículo, la orden registra el evento de dominio correspondiente; el caso de uso los recoge
- * con {@link #pullDomainEvents()} y los guarda junto a la orden para publicarlos (AGENTS.md 5.2).
  */
 public final class MaintenanceOrder {
-
-    /** Tamaño máximo de los textos libres (notas, motivo de cancelación), igual que en el contrato. */
     public static final int MAX_NOTES = 1000;
     public static final int MAX_REASON = 500;
 
-    /**
-     * Todos los datos de la orden, para guardarla y reconstruirla (solo lo usa el repositorio).
-     * {@code version} sirve para el bloqueo optimista: cada escritura exige la versión leída.
-     */
     public record Snapshot(MaintenanceOrderId orderId, VehicleId vehicleId, VehicleType vehicleType,
                            MaintenanceReason reason, ZoneId zoneId, MaintenanceOrderStatus status,
                            TechnicianId technicianId, Set<MaintenanceWork> workPerformed, String notes,
                            UUID triggeredByEventId, Instant createdAt, Instant withdrawnAt, Instant returnedAt,
                            ZoneId returnZoneId, String cancellationReason, long version) {
-
         public Snapshot {
             workPerformed = workPerformed == null || workPerformed.isEmpty()
                     ? Set.of() : Set.copyOf(EnumSet.copyOf(workPerformed));
@@ -83,7 +72,6 @@ public final class MaintenanceOrder {
                 ? EnumSet.noneOf(MaintenanceWork.class) : EnumSet.copyOf(s.workPerformed());
     }
 
-    /** Orden nueva: el vehículo todavía está en la calle, en {@code zoneId}. */
     public static MaintenanceOrder open(MaintenanceOrderId orderId, VehicleId vehicleId, VehicleType vehicleType,
                                         MaintenanceReason reason, ZoneId zoneId, Instant createdAt,
                                         String notes, UUID triggeredByEventId) {
@@ -92,7 +80,6 @@ public final class MaintenanceOrder {
                 null, null, null, null, 0));
     }
 
-    /** Reconstrucción desde la base de datos (solo la usa el repositorio). */
     public static MaintenanceOrder rehydrate(Snapshot snapshot) {
         return new MaintenanceOrder(snapshot);
     }
@@ -103,7 +90,6 @@ public final class MaintenanceOrder {
                 cancellationReason, version);
     }
 
-    /** El técnico recoge el vehículo de la calle. Registra VehicleWithdrawnForMaintenance. */
     public void withdrawForMaintenance(TechnicianId technician, Instant at) {
         Objects.requireNonNull(technician, "technician");
         Objects.requireNonNull(at, "at");
@@ -123,7 +109,6 @@ public final class MaintenanceOrder {
         workPerformed.add(MaintenanceWork.REPAIR);
     }
 
-    /** Si no se cargó ni se reparó, el trabajo realizado fue una revisión. */
     public void markReadyForService() {
         state = state.markReadyForService();
         if (workPerformed.isEmpty()) {
@@ -131,7 +116,6 @@ public final class MaintenanceOrder {
         }
     }
 
-    /** El vehículo vuelve a la calle en {@code zone}. Registra VehicleReturnedToService. */
     public void returnToService(ZoneId zone, Instant at) {
         Objects.requireNonNull(zone, "zone");
         Objects.requireNonNull(at, "at");
@@ -143,7 +127,6 @@ public final class MaintenanceOrder {
                 List.copyOf(workPerformed), zone, outOfServiceSeconds, at));
     }
 
-    /** Solo antes de retirar el vehículo (p. ej. orden duplicada o falsa alarma). */
     public void cancel(String reasonText) {
         if (reasonText == null || reasonText.isBlank()) {
             throw new IllegalArgumentException("A cancellation reason is required");
@@ -153,13 +136,11 @@ public final class MaintenanceOrder {
         cancellationReason = reasonText;
     }
 
-    /** true mientras el vehículo esté pendiente de retirar o en el taller. */
     public boolean isActive() {
         MaintenanceOrderStatus status = state.status();
         return status != MaintenanceOrderStatus.RETURNED && status != MaintenanceOrderStatus.CANCELLED;
     }
 
-    /** Devuelve los eventos registrados desde la última llamada y vacía la lista. */
     public List<DomainEvent> pullDomainEvents() {
         List<DomainEvent> events = List.copyOf(pendingEvents);
         pendingEvents.clear();

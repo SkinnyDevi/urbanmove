@@ -1,0 +1,501 @@
+[ {
+  "vehicleId" : "veh-0004",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0083",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0082",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0046",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0050",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0092",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0035",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0071",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0096",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0020",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0093",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0049",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0048",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0087",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0070",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0018",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0057",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0081",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0042",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0029",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0085",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0030",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0066",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0065",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0062",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0034",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0013",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0023",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0095",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0100",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0025",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0021",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0002",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0052",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0074",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0053",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0051",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0011",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0059",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0055",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0010",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0022",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0003",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0043",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0036",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0007",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0033",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0027",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0099",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0077",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0038",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0080",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0058",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0075",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0076",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0098",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0005",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0068",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0069",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0032",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0037",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0086",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0039",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0024",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0097",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0006",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0061",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0063",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0064",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0028",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0084",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0041",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0015",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0073",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0079",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0091",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0056",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0054",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0031",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0019",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0088",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0012",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0094",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0047",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "siete-palmas"
+}, {
+  "vehicleId" : "veh-0016",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0008",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0090",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0045",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "tafira"
+}, {
+  "vehicleId" : "veh-0089",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0078",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0044",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0009",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0014",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "triana"
+}, {
+  "vehicleId" : "veh-0060",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "santa-catalina"
+}, {
+  "vehicleId" : "veh-0067",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "mesa-y-lopez"
+}, {
+  "vehicleId" : "veh-0040",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0026",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "vegueta"
+}, {
+  "vehicleId" : "veh-0072",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "las-canteras"
+}, {
+  "vehicleId" : "veh-0017",
+  "vehicleType" : "SCOOTER",
+  "model" : "UrbanMove Scooter S2",
+  "initialZoneId" : "guanarteme"
+}, {
+  "vehicleId" : "veh-0001",
+  "vehicleType" : "BIKE",
+  "model" : "UrbanMove E-Bike City",
+  "initialZoneId" : "las-canteras"
+} ]

@@ -1,0 +1,17 @@
+<!-- Logs en JSON por la salida estándar (los recoge Docker / CloudWatch). Formato: AGENTS.md 6.2 -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="com.urbanmove.availability.infrastructure.logging.JsonLogEncoder">
+      <service>availability-service</service>
+    </encoder>
+  </appender>
+
+  <!-- Menos ruido de las librerías -->
+  <logger name="org.eclipse.jetty" level="WARN"/>
+  <logger name="software.amazon.awssdk" level="WARN"/>
+  <logger name="org.testcontainers" level="WARN"/>
+
+  <root level="${LOG_LEVEL:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

@@ -20,16 +20,8 @@ import java.util.Date;
 import java.util.List;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-/**
- * Base de los tests de integración y de contrato: arranca el servicio completo
- * ({@link ZonesApplication#start}) en un puerto libre contra un PostgreSQL real en Docker
- * (Testcontainers) y le hace peticiones HTTP de verdad.
- *
- * <p>Contenedor y servicio se arrancan una sola vez y los comparten todas las clases de test.
- */
+/** Base de los tests: PostgreSQL en Docker y el servicio arrancado. */
 public abstract class ZonesApiTestSupport {
-
-    /** Solo para tests. El de verdad llega por la variable de entorno JWT_SECRET. */
     protected static final String TEST_JWT_SECRET = "test-only-secret-with-at-least-32-bytes!!";
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
@@ -42,7 +34,6 @@ public abstract class ZonesApiTestSupport {
         Runtime.getRuntime().addShutdownHook(new Thread(APP::close));
     }
 
-    /** Para tests que necesitan hablar con la base de datos directamente. */
     protected static ServiceConfig databaseConfig() {
         return new ServiceConfig("zones-service", 0, POSTGRES.getJdbcUrl(), POSTGRES.getUsername(),
                 POSTGRES.getPassword(), TEST_JWT_SECRET, "classpath:seed/zones.json");
@@ -78,7 +69,6 @@ public abstract class ZonesApiTestSupport {
         return get(path, token, null);
     }
 
-    /** JWT firmado como lo haría identity: sub = userId, roles = lista de roles. */
     protected static String token(List<String> roles, Instant expiresAt) {
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()

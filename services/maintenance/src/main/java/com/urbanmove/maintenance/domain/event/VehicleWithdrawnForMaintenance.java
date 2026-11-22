@@ -17,7 +17,6 @@ public record VehicleWithdrawnForMaintenance(
         ZoneId zoneId,
         TechnicianId technicianId,
         Instant occurredAt) implements DomainEvent {
-
     @Override
     public String eventType() {
         return "VehicleWithdrawnForMaintenance";

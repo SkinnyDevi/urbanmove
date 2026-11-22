@@ -2,12 +2,8 @@ package com.urbanmove.zones.interfaces.http;
 
 import io.javalin.http.HttpStatus;
 
-/**
- * Error HTTP que se devolverá como RFC 7807. Lo lanzan los manejadores y la seguridad;
- * {@link ZonesHttpApi} lo convierte en la respuesta.
- */
+/** Error HTTP que se devolverá como RFC 7807. */
 public final class ApiProblem extends RuntimeException {
-
     private final HttpStatus status;
     private final String type;
 

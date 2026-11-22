@@ -7,11 +7,10 @@ import com.urbanmove.maintenance.domain.VehicleType;
 import java.util.Objects;
 import java.util.UUID;
 
-/** POST /maintenance-orders. {@code notes} y {@code triggeredByEventId} son opcionales. */
+/** Datos validados para abrir una orden de mantenimiento. */
 public record OpenOrderCommand(String idempotencyKey, String correlationId, VehicleId vehicleId,
                                VehicleType vehicleType, MaintenanceReason reason, ZoneId zoneId,
                                String notes, UUID triggeredByEventId) {
-
     public OpenOrderCommand {
         Objects.requireNonNull(idempotencyKey, "idempotencyKey");
         Objects.requireNonNull(correlationId, "correlationId");

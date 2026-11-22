@@ -40,8 +40,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/** Casos de uso de maintenance: apertura, acciones, idempotencia y concurrencia. */
 class MaintenanceUseCasesTest {
-
     private static final String CORRELATION = "c9a8b7d6-0000-4000-8000-000000000001";
     private static final VehicleId VEHICLE = new VehicleId("veh-0042");
     private static final ZoneId MESA = new ZoneId("mesa-y-lopez");
@@ -84,7 +84,6 @@ class MaintenanceUseCasesTest {
 
     @Nested
     class Opening {
-
         @Test
         void opensAPendingOrder() {
             CommandResult result = openFor(VEHICLE, key());
@@ -134,7 +133,6 @@ class MaintenanceUseCasesTest {
 
     @Nested
     class Actions {
-
         private MaintenanceOrderId id;
 
         @BeforeEach
@@ -204,7 +202,7 @@ class MaintenanceUseCasesTest {
                 @Override
                 public java.util.Optional<com.urbanmove.maintenance.domain.MaintenanceOrder> findById(MaintenanceOrderId orderId) {
                     var order = store.findById(orderId);
-                    store.bumpVersion(orderId); // otra petición escribe justo después de nuestra lectura
+                    store.bumpVersion(orderId);
                     return order;
                 }
 

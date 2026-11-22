@@ -19,19 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-/**
- * Servidor HTTP del servicio (adaptador primario). Aquí está todo lo transversal de HTTP,
- * en este orden por petición:
- *
- * <ol>
- *   <li>correlationId: se lee o se genera, va al MDC (logs) y a la respuesta (AGENTS.md 6.1);</li>
- *   <li>seguridad: si la ruta tiene roles, se exige un JWT válido con uno de ellos (AGENTS.md 3.1);</li>
- *   <li>el manejador de la ruta;</li>
- *   <li>errores: cualquier excepción sale como RFC 7807 con correlationId (AGENTS.md 3.1).</li>
- * </ol>
- */
+/** Servidor HTTP del servicio (adaptador primario). */
 public final class ZonesHttpApi {
-
     public static final String CORRELATION_HEADER = "X-Correlation-Id";
     public static final String PROBLEM_JSON = "application/problem+json";
 
@@ -51,7 +40,6 @@ public final class ZonesHttpApi {
             config.routes.beforeMatched(ctx -> authorize(ctx, jwt));
             config.routes.after(ctx -> MDC.remove(JsonLogEncoder.CORRELATION_ID));
 
-            // Rutas sin roles = públicas. Rutas con roles = JWT obligatorio con uno de esos roles.
             config.routes.get("/health", health);
             config.routes.get("/zones", zones::listZones, ALL_ROLES);
             config.routes.get("/zones/{zoneId}", zones::getZone, ALL_ROLES);
@@ -63,7 +51,7 @@ public final class ZonesHttpApi {
             });
             config.routes.exception(InvalidZoneException.class, (e, ctx) ->
                     problem(ctx, HttpStatus.BAD_REQUEST, "/problems/validation", e.getMessage()));
-            // Rutas que no existen, métodos no permitidos... (excepciones propias de Javalin)
+
             config.routes.exception(HttpResponseException.class, (e, ctx) -> {
                 HttpStatus status = HttpStatus.forStatus(e.getStatus());
                 problem(ctx, status, "/problems/" + status.name().toLowerCase().replace('_', '-'), e.getMessage());
@@ -86,7 +74,6 @@ public final class ZonesHttpApi {
             try {
                 return UUID.fromString(header.trim()).toString();
             } catch (IllegalArgumentException ignored) {
-                // Cabecera mal formada: se genera una nueva en lugar de propagar basura a los logs.
             }
         }
         return UUID.randomUUID().toString();

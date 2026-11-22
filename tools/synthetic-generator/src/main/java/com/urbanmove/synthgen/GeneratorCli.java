@@ -8,14 +8,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 /**
- * Punto de entrada: lee los parámetros, ejecuta la simulación, escribe los resultados y muestra un resumen.
- *
- * <pre>
- *   java -jar tools/synthetic-generator/target/synthetic-generator.jar --days 7 --seed 42
- * </pre>
+ * Punto de entrada: lee los parámetros, ejecuta la simulación, escribe los resultados y muestra un
+ * resumen.
  */
 public final class GeneratorCli {
-
     private static final String HELP = """
             Genera eventos sintéticos de UrbanMove con patrones realistas.
 

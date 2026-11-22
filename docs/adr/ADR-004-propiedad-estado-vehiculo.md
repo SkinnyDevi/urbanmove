@@ -1,7 +1,5 @@
 # ADR-004 · Quién es dueño de cada estado del vehículo
 
-- **Estado:** aceptada (bloque B, pendiente de revisión por el equipo)
-- **Fecha:** 21 de noviembre de 2026
 - **Detalle:** [`docs/architecture/vehicle-state-machine.md`](../architecture/vehicle-state-machine.md)
 
 ## Contexto

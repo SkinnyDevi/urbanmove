@@ -1,8 +1,7 @@
 package com.urbanmove.availability.domain;
 
-/** Se lanza cuando se pide una acción que el estado actual del vehículo no admite (AGENTS.md 5.3). */
+/** Se lanza cuando se pide una acción que el estado actual del vehículo no admite. */
 public final class InvalidStateTransitionError extends RuntimeException {
-
     private final VehicleStatus from;
     private final VehicleAction action;
 

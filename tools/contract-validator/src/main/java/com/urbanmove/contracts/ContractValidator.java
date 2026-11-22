@@ -20,11 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Valida eventos de UrbanMove contra los contratos
- */
+/** Valida eventos de UrbanMove contra los contratos. */
 public final class ContractValidator {
-
     private static final String ROOT = "<raíz>";
 
     private final Path contractsDir;
@@ -41,7 +38,7 @@ public final class ContractValidator {
         if (!Files.isRegularFile(schemasDir.resolve("envelope.schema.json"))) {
             throw new IllegalArgumentException("No hay contratos en " + this.contractsDir);
         }
-        // formatAssertionsEnabled: comprueba de verdad fechas, UUID y emails (por defecto solo se anotan).
+
         SchemaRegistryConfig config = SchemaRegistryConfig.builder().formatAssertionsEnabled(true).build();
 
         this.registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12,
@@ -51,7 +48,6 @@ public final class ContractValidator {
         this.eventTypes = readEventTypes();
     }
 
-    /** Busca los contratos automáticamente */
     public static ContractValidator fromDefaultLocation() {
         return new ContractValidator(ContractsLocator.findContractsDir());
     }
@@ -60,12 +56,10 @@ public final class ContractValidator {
         return contractsDir;
     }
 
-    /** Los 13 tipos de evento del catálogo cerrado, tal como los define el envelope. */
     public List<String> knownEventTypes() {
         return eventTypes;
     }
 
-    /** Devuelve los errores del evento; lista vacía si es válido. */
     public List<String> validate(JsonNode event) {
         List<String> errors = format(envelopeSchema.validate(event));
         if (!errors.isEmpty()) {
@@ -77,7 +71,6 @@ public final class ContractValidator {
         return format(message.validate(event));
     }
 
-    /** Igual que {@link #validate(JsonNode)}, pero a partir del texto JSON. */
     public List<String> validate(String json) {
         try {
             return validate(mapper.readTree(json));
@@ -85,7 +78,6 @@ public final class ContractValidator {
             return List.of(ROOT + ": JSON mal formado: " + e.getOriginalMessage());
         }
     }
-
 
     private Schema loadSchema(Path file) {
         return registry.getSchema(SchemaLocation.of(file.toUri().toString()));

@@ -4,16 +4,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Configuración del servicio, leída de variables de entorno (AGENTS.md 8.5: nada sensible en el código).
- *
- * <p>Las credenciales de AWS no están aquí: el SDK las toma de su cadena por defecto
- * (variables AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY en local, el rol LabRole de la tarea en ECS).
- */
+/** Configuración del servicio, leída de variables de entorno. */
 public record ServiceConfig(String serviceName, int port, String awsRegion, String awsEndpoint,
                             String tableName, boolean createTable, String eventsTopicArn,
                             int outboxRelaySeconds, String jwtSecret) {
-
     public ServiceConfig {
         Objects.requireNonNull(serviceName);
         Objects.requireNonNull(awsRegion);
@@ -28,11 +22,6 @@ public record ServiceConfig(String serviceName, int port, String awsRegion, Stri
         }
     }
 
-    /**
-     * Variables: PORT (8080), AWS_REGION (us-east-1), AWS_ENDPOINT_URL (solo con LocalStack),
-     * DYNAMODB_TABLE (urbanmove-maintenance), DYNAMODB_CREATE_TABLE (false), EVENTS_TOPIC_ARN (obligatoria),
-     * OUTBOX_RELAY_SECONDS (5), JWT_SECRET (obligatoria).
-     */
     public static ServiceConfig fromEnvironment(Map<String, String> env) {
         return new ServiceConfig(
                 "maintenance-service",
@@ -46,7 +35,6 @@ public record ServiceConfig(String serviceName, int port, String awsRegion, Stri
                 required(env, "JWT_SECRET"));
     }
 
-    /** Endpoint de LocalStack; vacío en AWS real. */
     public Optional<String> endpoint() {
         return Optional.ofNullable(awsEndpoint);
     }
@@ -63,7 +51,6 @@ public record ServiceConfig(String serviceName, int port, String awsRegion, Stri
         return value == null || value.isBlank() ? null : value;
     }
 
-    /** No imprime el secreto del JWT si alguien loguea la configuración. */
     @Override
     public String toString() {
         return "ServiceConfig[serviceName=" + serviceName + ", port=" + port + ", awsRegion=" + awsRegion

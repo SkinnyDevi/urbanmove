@@ -12,16 +12,8 @@ import java.util.List;
 import java.util.Set;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * Valida los JWT emitidos por identity (AGENTS.md 3.1): firma, caducidad y roles.
- *
- * <p>Formato provisional hasta que el bloque A lo cierre: HS256 con un secreto compartido
- * (variable JWT_SECRET, nunca en el repositorio), {@code sub} = userId y los roles en el claim
- * {@code roles}. Si A elige claves asimétricas, solo cambia el constructor.
- */
+/** Valida los JWT emitidos por identity: firma, caducidad y roles. */
 public final class JwtVerifier {
-
-    /** Usuario autenticado de la petición. */
     public record AuthenticatedUser(String userId, Set<Role> roles) {
     }
 
@@ -33,11 +25,10 @@ public final class JwtVerifier {
             throw new IllegalStateException("JWT_SECRET must be at least 32 bytes for HS256");
         }
         processor.setJWSKeySelector(new SingleKeyJWSKeySelector<>(JWSAlgorithm.HS256, new SecretKeySpec(key, "HmacSHA256")));
-        // Exige sub y exp, y rechaza tokens caducados.
+
         processor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier<>(null, Set.of("sub", "exp")));
     }
 
-    /** @throws ApiProblem 401 si el token falta, está mal formado, mal firmado o caducado */
     public AuthenticatedUser verify(String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw ApiProblem.unauthorized();
@@ -51,7 +42,6 @@ public final class JwtVerifier {
             }
             return new AuthenticatedUser(claims.getSubject(), roles);
         } catch (Exception e) {
-            // ParseException, BadJOSEException, JOSEException...: para el cliente todos son "token no válido".
             throw ApiProblem.unauthorized();
         }
     }

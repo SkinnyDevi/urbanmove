@@ -3,15 +3,9 @@ package com.urbanmove.zones.infrastructure;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Configuración del servicio, leída de variables de entorno (AGENTS.md 8.5: nada sensible en el código).
- *
- * <p>Inmutable y creada una sola vez en el arranque: es el único tipo de "singleton" permitido
- * (AGENTS.md 5.1), y se pasa explícitamente a quien la necesite.
- */
+/** Configuración del servicio, leída de variables de entorno. */
 public record ServiceConfig(String serviceName, int port, String dbUrl, String dbUser, String dbPassword,
                             String jwtSecret, String seedFile) {
-
     public ServiceConfig {
         Objects.requireNonNull(serviceName);
         Objects.requireNonNull(dbUrl);
@@ -24,10 +18,6 @@ public record ServiceConfig(String serviceName, int port, String dbUrl, String d
         }
     }
 
-    /**
-     * Variables: PORT (8080), DB_URL, DB_USER, DB_PASSWORD (obligatoria), JWT_SECRET (obligatoria),
-     * ZONES_SEED_FILE (por defecto la semilla incluida en el jar).
-     */
     public static ServiceConfig fromEnvironment(Map<String, String> env) {
         return new ServiceConfig(
                 "zones-service",
@@ -47,7 +37,6 @@ public record ServiceConfig(String serviceName, int port, String dbUrl, String d
         return value;
     }
 
-    /** No imprime contraseñas ni secretos si alguien loguea la configuración. */
     @Override
     public String toString() {
         return "ServiceConfig[serviceName=" + serviceName + ", port=" + port + ", dbUrl=" + dbUrl

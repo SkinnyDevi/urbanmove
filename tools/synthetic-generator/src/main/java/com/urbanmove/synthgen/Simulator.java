@@ -15,19 +15,8 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.function.LongConsumer;
 
-/**
- * El motor de la simulación.
- *
- * <p>Funciona con una "agenda" ordenada por tiempo. Cada entrada es "en el segundo T, haz esto". El motor
- * saca siempre la entrada más próxima, la ejecuta y, si esa acción provoca otras en el futuro (empezar un
- * viaje provoca terminarlo 20 minutos después), las apunta en la agenda. Así se simulan días enteros en
- * un segundo, sin esperar en tiempo real.
- *
- * <p>El tiempo se mide en segundos desde el inicio (el primer día a las 00:00). Los tiempos negativos
- * son el día anterior, cuando se dan de alta la flota y los usuarios.
- */
+/** El motor de la simulación. */
 public final class Simulator {
-
     private static final int HOUR = 3_600;
     private static final int DAY = 24 * HOUR;
     private static final int HOURS_PER_DAY = ConfigLoader.HOURS_PER_DAY;
@@ -38,7 +27,6 @@ public final class Simulator {
             "REPAIR", new int[] {6 * HOUR, 24 * HOUR},
             "INSPECTION", new int[] {HOUR, 2 * HOUR});
 
-    /** Una entrada de la agenda. A igual tiempo, va primero la que se apuntó antes. */
     private record Scheduled(long t, long order, LongConsumer action) implements Comparable<Scheduled> {
         @Override
         public int compareTo(Scheduled other) {
@@ -71,7 +59,7 @@ public final class Simulator {
     public Simulator(Settings settings, Rules rules) {
         this.settings = settings;
         this.rules = rules;
-        Random rng = new Random(settings.seed());   // todo lo aleatorio sale de aquí: misma semilla, mismos datos
+        Random rng = new Random(settings.seed());
         this.dice = new Dice(rng);
         this.ids = new IdFactory(rng);
         Instant start = settings.startDate().atStartOfDay(ZoneOffset.UTC).toInstant();
@@ -89,7 +77,7 @@ public final class Simulator {
 
     public GenerationResult run() {
         setupWorld();
-        scheduleHourChecks();   // se apuntan antes que la demanda: a igual segundo, la foto va primero
+        scheduleHourChecks();
         scheduleDemand();
         while (!agenda.isEmpty()) {
             Scheduled next = agenda.poll();
@@ -100,8 +88,6 @@ public final class Simulator {
         return new GenerationResult(settings, rules, zones, List.copyOf(vehicles), List.copyOf(everyone),
                 List.copyOf(events), List.copyOf(zoneHours), Map.copyOf(unmet));
     }
-
-    // ================================================================ agenda
 
     private void schedule(long t, LongConsumer action) {
         agenda.add(new Scheduled(t, nextOrder++, action));
@@ -117,9 +103,6 @@ public final class Simulator {
         events.add(event);
     }
 
-    // ================================================================ preparación
-
-    /** El día anterior al inicio se dan de alta la flota, los técnicos y los usuarios iniciales. */
     private void setupWorld() {
         for (Vehicle vehicle : World.buildFleet(zones, settings.vehicles(), rules.scooterShare, dice, ids)) {
             schedule(-DAY + 8L * HOUR + dice.below(4 * HOUR), t -> onVehiclePurchased(t, vehicle));
@@ -152,10 +135,9 @@ public final class Simulator {
 
     private double dayFactor(Zone zone, long dayIndex) {
         int weekday = Math.floorMod(settings.startDate().getDayOfWeek().getValue() - 1 + dayIndex, 7);
-        return weekday >= 5 ? profiles.get(zone.profile()).weekendFactor() : 1.0;   // 5 = sábado, 6 = domingo
+        return weekday >= 5 ? profiles.get(zone.profile()).weekendFactor() : 1.0;
     }
 
-    /** Decide cuántas personas querrán un vehículo en cada zona y en cada hora. */
     private void scheduleDemand() {
         double weekdayTotal = 0;
         for (Zone zone : zones) {
@@ -178,11 +160,6 @@ public final class Simulator {
         }
     }
 
-    /**
-     * Calcula un multiplicador por zona para que, en un día laborable, lleguen tantos vehículos como salen.
-     * Sin esto la flota "deriva": cada día se acumulan más vehículos en unas zonas y faltan en otras.
-     * Los desequilibrios por horas, que son los que interesan, se mantienen.
-     */
     private Map<String, Double> balanceArrivals() {
         Map<String, Double> factor = neutralBalance();
         for (int round = 0; round < 60; round++) {
@@ -221,8 +198,6 @@ public final class Simulator {
         return neutral;
     }
 
-    // ================================================================ altas
-
     private void onUserRegistered(long t, User user) {
         ("maintenance".equals(user.role) ? technicians : users).add(user);
         emit(factory.userRegistered(t, ids.uuid4(), user));
@@ -233,8 +208,6 @@ public final class Simulator {
         emit(factory.vehiclePurchased(t, ids.uuid4(), vehicle));
     }
 
-    // ================================================================ usuarios
-
     private Vehicle pickVehicle(String zoneId, VehicleType type) {
         List<Vehicle> candidates = vehicles.stream()
                 .filter(v -> v.zoneId.equals(zoneId) && v.type == type && v.isRentable())
@@ -242,7 +215,6 @@ public final class Simulator {
         return candidates.isEmpty() ? null : dice.pick(candidates);
     }
 
-    /** Una persona en esta zona quiere un vehículo. */
     private void onRequest(long t, Zone zone) {
         HourZone slot = new HourZone(Math.floorDiv(t, HOUR), zone.zoneId());
         VehicleType wanted = dice.chance(rules.scooterShare) ? VehicleType.SCOOTER : VehicleType.BIKE;
@@ -251,7 +223,7 @@ public final class Simulator {
             found = pickVehicle(zone.zoneId(), wanted.other());
         }
         if (found == null) {
-            unmet.merge(slot, 1, Integer::sum);   // demanda no atendida: no hay evento para esto
+            unmet.merge(slot, 1, Integer::sum);
             return;
         }
         List<User> freeUsers = users.stream().filter(u -> !u.busy).toList();
@@ -261,7 +233,7 @@ public final class Simulator {
         Vehicle vehicle = found;
         User user = dice.pick(freeUsers);
         user.busy = true;
-        String corr = ids.uuid4();   // un correlationId para todo el flujo de esta persona
+        String corr = ids.uuid4();
         signals.merge(slot, 1, Integer::sum);
 
         if (!dice.chance(rules.reserveFirst)) {
@@ -294,8 +266,6 @@ public final class Simulator {
         emit(factory.reservationExpired(t, corr, reservationId, vehicle, user, reservedAt));
     }
 
-    // ================================================================ viajes
-
     private Zone pickDestination(Zone origin, long t) {
         int hour = Math.floorMod(Math.floorDiv(t, HOUR), HOURS_PER_DAY);
         long day = Math.floorDiv(t, DAY);
@@ -313,7 +283,7 @@ public final class Simulator {
         Zone destination = pickDestination(origin, t);
         double km = destination == origin
                 ? dice.uniform(0.4, 1.8)
-                // la línea recta por 1,3: las calles nunca van rectas
+
                 : World.haversineKm(origin.lat(), origin.lon(), destination.lat(), destination.lon()) * 1.3
                   * dice.uniform(0.85, 1.2);
         double distance = World.round(km, 2);
@@ -341,9 +311,6 @@ public final class Simulator {
         afterRideChecks(t, vehicle);
     }
 
-    // ================================================================ mantenimiento
-
-    /** Cuándo actúa un técnico: dentro de su horario, tras un retraso; si no, al abrir al día siguiente. */
     private long workingTime(long t, int minDelay, int maxDelay) {
         int hour = Math.floorMod(Math.floorDiv(t, HOUR), HOURS_PER_DAY);
         if (hour >= rules.technicianOpenHour && hour < rules.technicianCloseHour) {
@@ -375,7 +342,7 @@ public final class Simulator {
 
     private void onBatteryLow(long t, Vehicle vehicle) {
         vehicle.state = "LOW_BATTERY";
-        String corr = ids.uuid4();   // empieza un flujo nuevo: el de mantenimiento
+        String corr = ids.uuid4();
         double[] location = World.randomPoint(zoneById.get(vehicle.zoneId), dice);
         emit(factory.batteryLow(t, corr, vehicle, rules.batteryLowThreshold, location));
         schedule(workingTime(t, 20 * 60, 120 * 60), s -> onWithdrawn(s, vehicle, "LOW_BATTERY", corr));
@@ -406,7 +373,7 @@ public final class Simulator {
         if (work.contains("RECHARGE")) {
             vehicle.battery = 100.0;
         }
-        if (work.contains("INSPECTION") || work.contains("REPAIR")) {   // recargar no cuenta como revisión
+        if (work.contains("INSPECTION") || work.contains("REPAIR")) {
             vehicle.usagesSinceService = 0;
         }
         vehicle.state = "AVAILABLE";
@@ -415,13 +382,6 @@ public final class Simulator {
         vehicle.withdrawnAt = null;
     }
 
-    // ================================================================ foto horaria
-
-    /**
-     * Al final de cada hora apunta, por zona, disponibles y demanda: la verdad con la que comprobar la
-     * analítica. "Disponibles" son los vehículos en estado AVAILABLE, es decir, lo que vería el servicio de
-     * disponibilidad a partir de los eventos (una avería aún no retirada cuenta como disponible).
-     */
     private void onHourEnd(long hourIndex) {
         for (Zone zone : zones) {
             int available = (int) vehicles.stream()

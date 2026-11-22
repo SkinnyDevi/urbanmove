@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 /** El servicio completo contra PostgreSQL real: semilla, seguridad, errores y correlationId. */
 class ZonesApiIntegrationTest extends ZonesApiTestSupport {
-
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private static JsonNode body(HttpResponse<String> response) {

@@ -19,14 +19,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Punto de entrada y composición del servicio (AGENTS.md 4.2, DIP).
- *
- * <p>Aquí, y solo aquí, se crean los adaptadores y se inyectan por constructor en los casos de uso.
- * No hay framework de inyección: todo el grafo de objetos se lee en {@link #start}.
- */
+/** Punto de entrada y composición del servicio. */
 public final class ZonesApplication implements AutoCloseable {
-
     private static final Logger log = LoggerFactory.getLogger(ZonesApplication.class);
 
     private final HikariDataSource dataSource;
@@ -42,23 +36,19 @@ public final class ZonesApplication implements AutoCloseable {
         Runtime.getRuntime().addShutdownHook(new Thread(app::close, "shutdown"));
     }
 
-    /** Arranca el servicio completo. Lo usan main y los tests de integración. */
     public static ZonesApplication start(ServiceConfig config) {
         log.atInfo().addKeyValue("config", config.toString()).log("Starting");
         ObjectMapper json = new ObjectMapper();
 
-        // infrastructure
         HikariDataSource dataSource = Database.connect(config.dbUrl(), config.dbUser(), config.dbPassword());
         try {
             Database.migrate(dataSource);
             JdbcZoneRepository repository = new JdbcZoneRepository(dataSource, json);
 
-            // application. Si la semilla falla, el servicio no arranca (mejor que servir un catálogo vacío).
             new SeedZonesUseCase(JsonZoneSeedSource.fromLocation(config.seedFile(), json), repository).execute();
             ListZonesUseCase listZones = new ListZonesUseCase(repository);
             GetZoneUseCase getZone = new GetZoneUseCase(repository);
 
-            // interfaces
             Javalin http = ZonesHttpApi.create(
                     json,
                     new JwtVerifier(config.jwtSecret()),
@@ -73,7 +63,6 @@ public final class ZonesApplication implements AutoCloseable {
         }
     }
 
-    /** Puerto real (útil con port = 0 en los tests). */
     public int port() {
         return http.port();
     }

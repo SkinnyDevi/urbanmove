@@ -30,14 +30,8 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-/**
- * Punto de entrada y composición del servicio (AGENTS.md 4.2, DIP).
- *
- * <p>Aquí, y solo aquí, se crean los adaptadores y se inyectan por constructor en los casos de uso.
- * No hay framework de inyección: todo el grafo de objetos se lee en {@link #start} (ADR-003).
- */
+/** Punto de entrada y composición del servicio. */
 public final class MaintenanceApplication implements AutoCloseable {
-
     private static final Logger log = LoggerFactory.getLogger(MaintenanceApplication.class);
 
     private final Javalin http;
@@ -62,13 +56,11 @@ public final class MaintenanceApplication implements AutoCloseable {
         Runtime.getRuntime().addShutdownHook(new Thread(app::close, "shutdown"));
     }
 
-    /** Arranca el servicio completo. Lo usan main y los tests de integración. */
     public static MaintenanceApplication start(ServiceConfig config) {
         log.atInfo().addKeyValue("config", config.toString()).log("Starting");
         ObjectMapper json = new ObjectMapper();
         Clock clock = Clock.systemUTC();
 
-        // infrastructure: clientes de AWS (uno de cada, compartidos) y adaptadores
         SdkHttpClient awsHttp = AwsClients.httpClient();
         DynamoDbClient dynamo = AwsClients.dynamoDb(config, awsHttp);
         SnsClient sns = AwsClients.sns(config, awsHttp);
@@ -79,7 +71,6 @@ public final class MaintenanceApplication implements AutoCloseable {
                 new DynamoMaintenanceRepository(dynamo, config.tableName(), new EventEnvelopes(json), clock);
         SnsOutboxPublisher publisher = new SnsOutboxPublisher(dynamo, sns, config.tableName(), config.eventsTopicArn());
 
-        // application
         OpenMaintenanceOrderUseCase open = new OpenMaintenanceOrderUseCase(repository, repository, repository,
                 () -> new MaintenanceOrderId("mnt-" + UUID.randomUUID()), clock);
         PerformOrderActionUseCase act = new PerformOrderActionUseCase(repository, repository, repository,
@@ -87,7 +78,6 @@ public final class MaintenanceApplication implements AutoCloseable {
         GetMaintenanceOrderUseCase get = new GetMaintenanceOrderUseCase(repository);
         ListMaintenanceOrdersUseCase list = new ListMaintenanceOrdersUseCase(repository);
 
-        // interfaces
         Javalin http = MaintenanceHttpApi.create(
                 json,
                 new JwtVerifier(config.jwtSecret()),
@@ -97,7 +87,6 @@ public final class MaintenanceApplication implements AutoCloseable {
                 new OrderHandlers(open, act, get, list, json));
         http.start(config.port());
 
-        // Reintento periódico de los eventos que no se pudieron publicar
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
                 r -> Thread.ofPlatform().name("outbox-relay").daemon(true).unstarted(r));
         publisher.start(scheduler, config.outboxRelaySeconds());
@@ -106,12 +95,10 @@ public final class MaintenanceApplication implements AutoCloseable {
         return new MaintenanceApplication(http, scheduler, awsHttp, dynamo, sns, publisher);
     }
 
-    /** Puerto real (útil con port = 0 en los tests). */
     public int port() {
         return http.port();
     }
 
-    /** Publica ya los eventos pendientes, sin esperar al reintento periódico (tests). */
     public int relayPendingEvents() {
         return publisher.relayPending();
     }

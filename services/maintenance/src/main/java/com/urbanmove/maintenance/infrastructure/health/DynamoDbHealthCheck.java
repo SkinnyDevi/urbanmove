@@ -9,7 +9,6 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
 /** La tabla de DynamoDB existe y está ACTIVE. */
 public final class DynamoDbHealthCheck implements DependencyHealthCheck {
-
     private static final Logger log = LoggerFactory.getLogger(DynamoDbHealthCheck.class);
 
     private final DynamoDbClient dynamo;

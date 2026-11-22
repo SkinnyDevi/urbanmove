@@ -1,18 +1,7 @@
 package com.urbanmove.availability.domain;
 
-/**
- * Patrón State (AGENTS.md 5.3): cada estado decide qué acciones acepta y a qué estado lleva.
- *
- * <p>Por defecto toda acción es ilegal y lanza {@link InvalidStateTransitionError}; cada estado
- * sobrescribe solo las que admite. Así la matriz de transiciones está en un único sitio y
- * no hay switch/if repartidos por los servicios. Los estados no guardan datos, por eso cada
- * uno es una única instancia inmutable.
- *
- * <p>{@code batteryLow} indica si telemetry avisó de batería baja mientras el vehículo estaba
- * reservado o en uso: al liberarse no vuelve a AVAILABLE sino a LOW_BATTERY.
- */
+/** Patrón State: cada estado decide qué acciones acepta y a qué estado lleva. */
 sealed interface VehicleState {
-
     VehicleStatus status();
 
     default VehicleState reserve() {
@@ -31,7 +20,6 @@ sealed interface VehicleState {
         throw illegal(VehicleAction.FINISH_RIDE);
     }
 
-    /** Batería baja: por defecto el estado no cambia (la telemetría se repite y no debe fallar). */
     default VehicleState reportLowBattery() {
         return this;
     }
@@ -44,7 +32,6 @@ sealed interface VehicleState {
         throw illegal(VehicleAction.RETURN_TO_SERVICE);
     }
 
-    /** Cambio de zona por una orden de recolocación completada; el estado no cambia. */
     default VehicleState relocate() {
         throw illegal(VehicleAction.RELOCATE);
     }
@@ -75,7 +62,6 @@ sealed interface VehicleState {
 
         public VehicleState reserve() { return Reserved.INSTANCE; }
 
-        /** Uso directo sin reserva previa ("available for reservation or public use"). */
         public VehicleState startRide() { return InUse.INSTANCE; }
 
         public VehicleState reportLowBattery() { return LowBattery.INSTANCE; }

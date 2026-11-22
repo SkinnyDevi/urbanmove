@@ -21,12 +21,8 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/**
- * Test de contrato sin Docker: el JSON que genera {@link EventEnvelopes} cumple los esquemas de
- * docs/contracts/asyncapi (envelope + payload + source fijado por evento).
- */
+/** Comprueba que los eventos generados cumplen sus esquemas AsyncAPI. */
 class EventEnvelopeContractTest {
-
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final EventEnvelopes ENVELOPES = new EventEnvelopes(JSON);
     private static final Instant AT = Instant.parse("2026-11-15T10:30:00Z");
@@ -59,7 +55,6 @@ class EventEnvelopeContractTest {
         Contracts.assertEventMatchesContract(event);
     }
 
-    /** Si el validador aceptara cualquier cosa, los tests anteriores no demostrarían nada. */
     @Test
     void theContractRejectsAWrongEvent() throws Exception {
         ObjectNode event = (ObjectNode) serialize(withdrawn());

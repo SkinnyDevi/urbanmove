@@ -1,15 +1,14 @@
 package com.urbanmove.synthgen;
 
-/** Un vehículo durante la simulación. Su estado cambia según lo que le va pasando. */
+/** Un vehículo durante la simulación. */
 public final class Vehicle {
-
     public final String vehicleId;
     public final VehicleType type;
     String zoneId;
     double battery;
     String state = "AVAILABLE";
     int usagesSinceService;
-    /** true mientras espera a que un técnico lo retire: no se puede alquilar. */
+
     boolean pendingMaintenance;
     Long withdrawnAt;
 

@@ -13,7 +13,6 @@ import java.util.Map;
 
 /** Lee config/zones.json y config/demand_profiles.json y comprueba que tienen sentido. */
 public final class ConfigLoader {
-
     public static final int HOURS_PER_DAY = 24;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -35,7 +34,7 @@ public final class ConfigLoader {
         Map<String, DemandProfile> profiles = new LinkedHashMap<>();
         for (Map.Entry<String, JsonNode> entry : read(file).properties()) {
             if (entry.getKey().startsWith("_")) {
-                continue;   // comentarios como "_comment"
+                continue;
             }
             JsonNode p = entry.getValue();
             profiles.put(entry.getKey(), new DemandProfile(p.path("weekendFactor").asDouble(1.0),

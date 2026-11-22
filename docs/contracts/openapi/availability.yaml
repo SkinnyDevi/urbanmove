@@ -12,7 +12,7 @@ info:
     RideStarted, RideFinished, VehicleBatteryLow, VehicleWithdrawnForMaintenance,
     VehicleReturnedToService, RelocationOrderCompleted. Eventos publicados: ninguno.
 
-    Pendiente con el bloque A (decisión abierta 2): cómo se evita la doble reserva. Si se decide que
+    Pendiente con el bloque A: cómo se evita la doble reserva. Si se decide que
     reservations bloquee el vehículo de forma síncrona, aquí se añadirá una operación con bloqueo
     optimista e Idempotency-Key.
 servers:

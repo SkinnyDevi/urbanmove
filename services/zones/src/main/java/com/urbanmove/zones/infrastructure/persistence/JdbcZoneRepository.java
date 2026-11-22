@@ -19,9 +19,8 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.sql.DataSource;
 
-/** Adaptador PostgreSQL (JDBC) de los puertos {@link ZoneReader} y {@link ZoneWriter}. */
+/** Repositorio PostgreSQL (JDBC) del catálogo de zonas. */
 public final class JdbcZoneRepository implements ZoneReader, ZoneWriter {
-
     private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
     private static final String COLUMNS =
             "zone_id, name, center_lat, center_lon, radius_meters, capacity, parking_restrictions";
@@ -62,7 +61,6 @@ public final class JdbcZoneRepository implements ZoneReader, ZoneWriter {
         }
     }
 
-    /** Todas en una transacción; ON CONFLICT hace que dos réplicas a la vez no choquen. */
     @Override
     public int saveIfAbsent(Collection<Zone> zones) {
         String sql = "INSERT INTO zones (" + COLUMNS + ") VALUES (?, ?, ?, ?, ?, ?, CAST(? AS jsonb))"

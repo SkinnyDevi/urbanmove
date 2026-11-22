@@ -34,27 +34,12 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
-/**
- * Base de los tests de integración y de contrato: LocalStack 4.14.0 (la versión de la práctica 4)
- * con DynamoDB, SNS y SQS, y el servicio completo arrancado contra él en un puerto libre.
- *
- * <p>Monta el mismo patrón que la práctica de mensajería: un tópico SNS y una cola SQS suscrita
- * que hace de "consumidor" (el papel de availability). Los tests leen de esa cola los eventos
- * que publica el servicio.
- *
- * <p>Contenedor y servicio se arrancan una sola vez y los comparten todas las clases de test.
- */
+/** Base de los tests: LocalStack con DynamoDB, SNS y SQS y el servicio arrancado. */
 public abstract class MaintenanceApiTestSupport {
-
-    /** Solo para tests. El de verdad llega por la variable de entorno JWT_SECRET. */
     protected static final String TEST_JWT_SECRET = "test-only-secret-with-at-least-32-bytes!!";
     protected static final String TABLE = "urbanmove-maintenance";
     protected static final ObjectMapper JSON = new ObjectMapper();
 
-    /**
-     * La imagen oficial tal cual, como el {@code docker run} de la práctica 4. (El LocalStackContainer
-     * de Testcontainers espera a copiar un script de arranque que no llega con Docker 29 en Windows.)
-     */
     protected static final GenericContainer<?> LOCALSTACK =
             new GenericContainer<>("localstack/localstack:4.14.0")
                     .withEnv("SERVICES", "dynamodb,sns,sqs")
@@ -68,13 +53,13 @@ public abstract class MaintenanceApiTestSupport {
 
     private static final SqsClient SQS;
     private static final String QUEUE_URL;
-    /** Eventos recibidos de la cola, agrupados por orden (las clases de test comparten la cola). */
+
     private static final Map<String, List<JsonNode>> EVENTS_BY_ORDER = new ConcurrentHashMap<>();
 
     static {
         LOCALSTACK.start();
         URI endpoint = URI.create("http://" + LOCALSTACK.getHost() + ":" + LOCALSTACK.getMappedPort(4566));
-        // Credenciales de LocalStack para la cadena por defecto del SDK, como harían AWS_ACCESS_KEY_ID/SECRET.
+
         System.setProperty("aws.accessKeyId", "test");
         System.setProperty("aws.secretAccessKey", "test");
 
@@ -93,7 +78,6 @@ public abstract class MaintenanceApiTestSupport {
                     .attributes(Map.of("RawMessageDelivery", "true")));
         }
 
-        // Reintento periódico cada hora: los tests lo lanzan a mano (APP.relayPendingEvents()) cuando toca.
         CONFIG = new ServiceConfig("maintenance-service", 0, REGION, endpoint.toString(), TABLE, true,
                 TOPIC_ARN, 3600, TEST_JWT_SECRET);
         APP = MaintenanceApplication.start(CONFIG);
@@ -102,9 +86,6 @@ public abstract class MaintenanceApiTestSupport {
 
     private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
 
-    // ------------------------------------------------------------------ HTTP
-
-    /** Petición completa. {@code idempotencyKey} y {@code body} pueden ser null. */
     protected static HttpResponse<String> request(String method, String path, String token, String idempotencyKey,
                                                   String correlationId, Object body) {
         try {
@@ -138,7 +119,6 @@ public abstract class MaintenanceApiTestSupport {
         return request("GET", path, token, null, null, null);
     }
 
-    /** POST con una Idempotency-Key nueva. */
     protected static HttpResponse<String> post(String path, String token, Object body) {
         return request("POST", path, token, UUID.randomUUID().toString(), null, body);
     }
@@ -151,18 +131,15 @@ public abstract class MaintenanceApiTestSupport {
         }
     }
 
-    /** Cuerpo de POST /maintenance-orders para un vehículo. */
     protected static Map<String, Object> openBody(String vehicleId) {
         return Map.of("vehicleId", vehicleId, "vehicleType", "SCOOTER", "reason", "LOW_BATTERY",
                 "zoneId", "mesa-y-lopez");
     }
 
-    /** Un vehículo distinto en cada test, para que no choquen entre sí (una orden activa por vehículo). */
     protected static String newVehicle() {
         return "veh-it-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    /** Abre una orden y devuelve su id. */
     protected static String openOrder(String vehicleId) {
         HttpResponse<String> response = post("/maintenance-orders", token("maintenance"), openBody(vehicleId));
         if (response.statusCode() != 201) {
@@ -171,9 +148,6 @@ public abstract class MaintenanceApiTestSupport {
         return json(response).get("maintenanceOrderId").asText();
     }
 
-    // ------------------------------------------------------------------ JWT
-
-    /** JWT firmado como lo haría identity. El técnico de los tests es usr-tech-it. */
     protected static String token(List<String> roles, String subject, Instant expiresAt) {
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
@@ -194,12 +168,6 @@ public abstract class MaintenanceApiTestSupport {
         return token(List.of(roles), "usr-tech-it", Instant.now().plusSeconds(300));
     }
 
-    // ------------------------------------------------------------------ eventos recibidos en SQS
-
-    /**
-     * Espera (hasta 15 s) a que la cola haya recibido {@code count} eventos de la orden y los
-     * devuelve en orden de llegada.
-     */
     protected static List<JsonNode> awaitEvents(String orderId, int count) {
         long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
@@ -213,7 +181,6 @@ public abstract class MaintenanceApiTestSupport {
                 + EVENTS_BY_ORDER.getOrDefault(orderId, List.of()).size());
     }
 
-    /** Eventos de la orden recibidos hasta ahora (sin esperar más que una lectura). */
     protected static List<JsonNode> eventsSoFar(String orderId) {
         drainQueue();
         return List.copyOf(EVENTS_BY_ORDER.getOrDefault(orderId, List.of()));

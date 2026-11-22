@@ -25,12 +25,11 @@ import java.util.List;
 
 /** Lectura de los contratos de docs/contracts y validación de JSON contra ellos. */
 final class Contracts {
-
     static final Path CONTRACTS = findContracts();
 
     private static final SchemaRegistry REGISTRY = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12,
             builder -> builder
-                    // formatAssertions: comprueba de verdad uuid y date-time (por defecto solo se anotan)
+
                     .schemaRegistryConfig(SchemaRegistryConfig.builder().formatAssertionsEnabled(true).build())
                     .resourceLoaders(loaders -> loaders.resources(Contracts::readContractFile)));
 
@@ -49,7 +48,6 @@ final class Contracts {
         throw new IllegalStateException("docs/contracts not found");
     }
 
-    /** Solo se leen ficheros de dentro de docs/contracts (los $ref relativos de los esquemas). */
     private static String readContractFile(String iri) {
         try {
             Path file = Path.of(URI.create(iri)).toAbsolutePath().normalize();
@@ -59,9 +57,6 @@ final class Contracts {
         }
     }
 
-    // ------------------------------------------------------------------ eventos (AsyncAPI)
-
-    /** Errores del evento contra docs/contracts/asyncapi/schemas/messages/&lt;eventType&gt;.message.schema.json */
     static List<com.networknt.schema.Error> eventErrors(JsonNode event) {
         String type = event.path("eventType").asText();
         Path schemaFile = CONTRACTS.resolve("asyncapi/schemas/messages/" + type + ".message.schema.json");
@@ -74,8 +69,6 @@ final class Contracts {
         List<com.networknt.schema.Error> errors = eventErrors(event);
         assertTrue(errors.isEmpty(), "El evento no cumple su contrato: " + errors + "\n" + event);
     }
-
-    // ------------------------------------------------------------------ REST (OpenAPI)
 
     private static synchronized OpenAPI maintenanceApi() {
         if (maintenanceApi == null) {
@@ -91,7 +84,6 @@ final class Contracts {
         return maintenanceApi;
     }
 
-    /** Valida la respuesta contra el esquema que el contrato declara para esa ruta, método y código. */
     static void assertResponseMatchesContract(String method, String path, HttpResponse<String> response) {
         PathItem item = maintenanceApi().getPaths().get(path);
         assertNotNull(item, "El contrato no tiene la ruta " + path);

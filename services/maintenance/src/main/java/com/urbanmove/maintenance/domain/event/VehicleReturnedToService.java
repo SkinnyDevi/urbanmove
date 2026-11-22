@@ -17,7 +17,6 @@ public record VehicleReturnedToService(
         ZoneId zoneId,
         long outOfServiceSeconds,
         Instant occurredAt) implements DomainEvent {
-
     public VehicleReturnedToService {
         workPerformed = List.copyOf(workPerformed);
     }

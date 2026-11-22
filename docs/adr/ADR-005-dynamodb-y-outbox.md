@@ -1,7 +1,5 @@
 # ADR-005 · DynamoDB como base de datos y publicación de eventos con bandeja de salida (outbox)
 
-- **Estado:** aceptada (bloque B, aplicada en `maintenance`; pendiente de extender al resto del equipo)
-- **Fecha:** 21 de noviembre de 2026
 
 ## Contexto
 
@@ -18,6 +16,8 @@ Además, un servicio que guarda un cambio y publica un evento tiene un problema 
    - `attribute_not_exists(pk)` en la `Idempotency-Key` → una petición repetida no se aplica dos veces (`AGENTS.md` 5.5);
    - `rowVersion = :expected` en la orden → bloqueo optimista.
 4. **Bandeja de salida (outbox)**: los eventos se guardan en la **misma transacción** que el cambio. Después se publican en SNS y se borran. Si SNS falla, un proceso periódico (cada 5 s) los reintenta.
+
+En el lado consumidor (`availability`) se aplica la misma idea: la marca `PROCESSED#eventId` se guarda en la **misma transacción** que el cambio del vehículo, con `attribute_not_exists`. Así un evento repetido no se aplica dos veces aunque llegue a la vez a dos réplicas.
 
 ## Consecuencias
 

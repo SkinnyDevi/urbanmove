@@ -3,7 +3,7 @@ package com.urbanmove.zones.interfaces.http;
 import io.javalin.security.RouteRole;
 import java.util.Optional;
 
-/** Los tres roles oficiales del JWT (AGENTS.md 3.1). Se asignan a cada ruta al registrarla. */
+/** Los tres roles oficiales del JWT. */
 public enum Role implements RouteRole {
     USER("user"),
     MAINTENANCE("maintenance"),
@@ -15,7 +15,6 @@ public enum Role implements RouteRole {
         this.claimValue = claimValue;
     }
 
-    /** Valor tal como aparece en el claim {@code roles} del JWT. */
     public String claimValue() {
         return claimValue;
     }

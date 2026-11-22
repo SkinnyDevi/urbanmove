@@ -7,7 +7,6 @@ import java.util.Objects;
 
 /** Caso de uso: listar todas las zonas. */
 public final class ListZonesUseCase {
-
     private final ZoneReader zones;
 
     public ListZonesUseCase(ZoneReader zones) {

@@ -6,7 +6,6 @@ import java.util.List;
 /** DTO de salida: esquema Zone de docs/contracts/openapi/zones.yaml. */
 public record ZoneResponse(String zoneId, String name, Center center, int radiusMeters, int capacity,
                            List<String> parkingRestrictions) {
-
     public record Center(double lat, double lon) {
     }
 

@@ -19,13 +19,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Caso de uso: una acción del técnico sobre una orden (retirar, cargar, reparar, marcar lista,
  * devolver, cancelar).
- *
- * <p>Pasos: comprobar la Idempotency-Key, leer la orden, aplicar la acción (la máquina de estados
- * decide si es legal), guardar orden + eventos en una sola escritura y, después, publicar los
- * eventos (AGENTS.md 5.2). Si la publicación falla, los eventos siguen guardados y se reintentan.
  */
 public final class PerformOrderActionUseCase {
-
     private static final Logger log = LoggerFactory.getLogger(PerformOrderActionUseCase.class);
 
     private final MaintenanceOrderReader reader;
@@ -77,7 +72,6 @@ public final class PerformOrderActionUseCase {
         return new CommandResult(order, false);
     }
 
-    /** Traduce el comando en la llamada al agregado. La legalidad la decide el agregado, no este método. */
     private void apply(MaintenanceOrder order, OrderActionCommand command) {
         switch (command.action()) {
             case WITHDRAW_FOR_MAINTENANCE -> order.withdrawForMaintenance(command.technician(), clock.instant());

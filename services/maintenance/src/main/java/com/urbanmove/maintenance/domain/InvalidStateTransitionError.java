@@ -1,8 +1,7 @@
 package com.urbanmove.maintenance.domain;
 
-/** Se lanza cuando se pide una acción que el estado actual de la orden no admite (AGENTS.md 5.3). */
+/** Se lanza cuando se pide una acción que el estado actual de la orden no admite. */
 public final class InvalidStateTransitionError extends RuntimeException {
-
     private final MaintenanceOrderStatus from;
     private final MaintenanceAction action;
 

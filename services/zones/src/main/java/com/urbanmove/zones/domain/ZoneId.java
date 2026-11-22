@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 
 /** Identificador de zona (slug), con el formato de los contratos: ^[a-z0-9-]+$. */
 public record ZoneId(String value) {
-
     private static final Pattern FORMAT = Pattern.compile("^[a-z0-9-]+$");
 
     public ZoneId {

@@ -2,7 +2,6 @@ package com.urbanmove.zones.domain;
 
 /** Punto geográfico en grados decimales (common.schema.json: location). */
 public record GeoPoint(double lat, double lon) {
-
     public GeoPoint {
         if (lat < -90 || lat > 90) {
             throw new InvalidZoneException("Latitude out of range: " + lat);

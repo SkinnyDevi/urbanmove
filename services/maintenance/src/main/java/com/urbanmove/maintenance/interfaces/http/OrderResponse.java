@@ -10,7 +10,6 @@ public record OrderResponse(String maintenanceOrderId, String vehicleId, String 
                             String zoneId, String status, String technicianId, List<String> workPerformed,
                             String notes, String triggeredByEventId, String createdAt, String withdrawnAt,
                             String returnedAt, String returnZoneId, String cancellationReason) {
-
     public static OrderResponse from(MaintenanceOrder order) {
         MaintenanceOrder.Snapshot s = order.snapshot();
         return new OrderResponse(
@@ -35,7 +34,6 @@ public record OrderResponse(String maintenanceOrderId, String vehicleId, String 
         return instant == null ? null : instant.toString();
     }
 
-    /** Respuesta de GET /maintenance-orders. */
     public record Page(List<OrderResponse> items, String nextCursor) {
     }
 }

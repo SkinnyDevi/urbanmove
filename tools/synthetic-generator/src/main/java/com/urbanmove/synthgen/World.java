@@ -7,7 +7,6 @@ import java.util.Locale;
 
 /** El "mundo" de la simulación: crear la flota y los usuarios, y medir distancias. */
 public final class World {
-
     private static final List<String> FIRST_NAMES = List.of("Laura", "Carlos", "Nayra", "Airam", "Lucía", "Jonay",
             "Marta", "Yeray", "Elena", "Acoidan", "Sara", "Daniel", "Cristina", "Tamara", "Pablo", "Iballa", "Javier",
             "Ana", "Héctor", "Irene", "Raúl", "Beatriz", "Adrián", "Carmen", "Óscar", "Noelia", "Iván", "Paula",
@@ -19,7 +18,6 @@ public final class World {
     private World() {
     }
 
-    /** Reparte la flota entre zonas en proporción a su capacidad, con batería entre el 60 % y el 100 %. */
     public static List<Vehicle> buildFleet(List<Zone> zones, int count, double scooterShare, Dice dice,
                                            IdFactory ids) {
         double[] weights = zones.stream().mapToDouble(Zone::capacity).toArray();
@@ -41,7 +39,6 @@ public final class World {
         return new User(userId, email, first + " " + last, role);
     }
 
-    /** Distancia en línea recta entre dos puntos del globo, en km (fórmula del haversine). */
     public static double haversineKm(double lat1, double lon1, double lat2, double lon2) {
         double r = 6371.0;
         double p1 = Math.toRadians(lat1);
@@ -52,7 +49,6 @@ public final class World {
         return 2 * r * Math.asin(Math.sqrt(a));
     }
 
-    /** Un punto al azar dentro del radio de la zona: {lat, lon} con 6 decimales. */
     public static double[] randomPoint(Zone zone, Dice dice) {
         double distance = zone.radiusMeters() * Math.sqrt(dice.nextDouble());
         double angle = dice.uniform(0, 2 * Math.PI);
@@ -66,7 +62,6 @@ public final class World {
         return Math.round(value * factor) / factor;
     }
 
-    /** "Lucía" -> "lucia", para construir emails sin tildes. */
     private static String ascii(String text) {
         return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
     }

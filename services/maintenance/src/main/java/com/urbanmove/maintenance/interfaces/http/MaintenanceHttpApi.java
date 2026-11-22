@@ -26,18 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-/**
- * Servidor HTTP del servicio (adaptador primario). Lo transversal, en este orden por petición:
- *
- * <ol>
- *   <li>correlationId: se lee o se genera, va al MDC (logs), a la respuesta y a los eventos (AGENTS.md 6.1);</li>
- *   <li>seguridad: si la ruta tiene roles, se exige un JWT válido con uno de ellos (AGENTS.md 3.1);</li>
- *   <li>el manejador de la ruta;</li>
- *   <li>errores: cualquier excepción sale como RFC 7807 con correlationId (AGENTS.md 3.1).</li>
- * </ol>
- */
+/** Servidor HTTP del servicio (adaptador primario). */
 public final class MaintenanceHttpApi {
-
     public static final String CORRELATION_HEADER = "X-Correlation-Id";
     public static final String PROBLEM_JSON = "application/problem+json";
 
@@ -58,7 +48,6 @@ public final class MaintenanceHttpApi {
             config.routes.beforeMatched(ctx -> authorize(ctx, jwt));
             config.routes.after(ctx -> MDC.remove(JsonLogEncoder.CORRELATION_ID));
 
-            // Rutas sin roles = públicas. Con roles = JWT obligatorio con uno de ellos (contrato).
             config.routes.get("/health", health);
             config.routes.post("/maintenance-orders", orders::openOrder, MAINTENANCE, ADMIN);
             config.routes.get("/maintenance-orders", orders::listOrders, MAINTENANCE, ADMIN);
@@ -91,10 +80,10 @@ public final class MaintenanceHttpApi {
                     problem(ctx, HttpStatus.CONFLICT, "/problems/concurrent-update", e.getMessage(), Map.of()));
             config.routes.exception(IdempotencyKeyReusedException.class, (e, ctx) ->
                     problem(ctx, HttpStatus.CONFLICT, "/problems/idempotency-key-reused", e.getMessage(), Map.of()));
-            // Identificadores con formato incorrecto, cursor no válido...
+
             config.routes.exception(IllegalArgumentException.class, (e, ctx) ->
                     problem(ctx, HttpStatus.BAD_REQUEST, "/problems/validation", e.getMessage(), Map.of()));
-            // Rutas que no existen, métodos no permitidos... (excepciones propias de Javalin)
+
             config.routes.exception(HttpResponseException.class, (e, ctx) -> {
                 HttpStatus status = HttpStatus.forStatus(e.getStatus());
                 problem(ctx, status, "/problems/" + status.name().toLowerCase().replace('_', '-'), e.getMessage(), Map.of());
@@ -106,13 +95,11 @@ public final class MaintenanceHttpApi {
         });
     }
 
-    /** correlationId de la petición en curso (lo pone el primer filtro). */
     static String correlationId(Context ctx) {
         String id = ctx.attribute(CORRELATION);
         return id != null ? id : UUID.randomUUID().toString();
     }
 
-    /** Usuario autenticado de la petición (solo en rutas con roles). */
     static JwtVerifier.AuthenticatedUser user(Context ctx) {
         return ctx.attribute(USER);
     }
@@ -129,7 +116,6 @@ public final class MaintenanceHttpApi {
             try {
                 return UUID.fromString(header.trim()).toString();
             } catch (IllegalArgumentException ignored) {
-                // Cabecera mal formada: se genera una nueva en lugar de propagar basura a logs y eventos.
             }
         }
         return UUID.randomUUID().toString();

@@ -24,8 +24,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+/** Máquina de estados de la orden de mantenimiento y sus eventos. */
 class MaintenanceOrderTest {
-
     private static final MaintenanceOrderId ORDER = new MaintenanceOrderId("mnt-0031");
     private static final VehicleId VEHICLE = new VehicleId("veh-0042");
     private static final ZoneId MESA = new ZoneId("mesa-y-lopez");
@@ -33,7 +33,6 @@ class MaintenanceOrderTest {
     private static final TechnicianId TECH = new TechnicianId("usr-tech-02");
     private static final Instant T0 = Instant.parse("2026-11-15T10:00:00Z");
 
-    /** Misma tabla que docs/architecture/vehicle-state-machine.md. Lo demás es ilegal. */
     private static final Map<MaintenanceOrderStatus, Map<MaintenanceAction, MaintenanceOrderStatus>> ALLOWED =
             new EnumMap<>(MaintenanceOrderStatus.class);
 

@@ -3,12 +3,8 @@ package com.urbanmove.maintenance.domain;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-/**
- * Value objects de identificadores con el formato de los contratos (common.schema.json).
- * Son propios de maintenance: no se importan de otros servicios (AGENTS.md 4.1).
- */
+/** Value objects de identificadores con el formato de los contratos (common.schema.json). */
 public final class Identifiers {
-
     private Identifiers() {
     }
 
@@ -53,7 +49,6 @@ public final class Identifiers {
         public String toString() { return value; }
     }
 
-    /** Técnico de mantenimiento: es un usuario con rol maintenance. */
     public record TechnicianId(String value) {
         private static final Pattern FORMAT = Pattern.compile("^usr-[a-z0-9-]+$");
 

@@ -25,24 +25,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
-/**
- * Publica en el tópico SNS los eventos guardados en la tabla (patrón outbox).
- *
- * <ul>
- *   <li>{@link #dispatch}: justo después de guardar la orden, publica sus eventos.</li>
- *   <li>{@link #relayPending}: cada pocos segundos, publica los que quedaron pendientes porque SNS
- *       falló o el servicio se reinició entre guardar y publicar.</li>
- * </ul>
- *
- * Un evento solo se borra de la tabla después de que SNS confirme la publicación. Si el borrado
- * falla, el evento se publicará otra vez: SQS ya entrega "al menos una vez", así que los
- * consumidores deben ser idempotentes con el eventId (AGENTS.md 5.5).
- *
- * <p>Cada mensaje lleva el atributo {@code eventType}, que usan las suscripciones SQS para filtrar
- * solo los eventos que les interesan (como en la práctica de SNS + SQS).
- */
+/** Publica en el tópico SNS los eventos guardados en la tabla (patrón outbox). */
 public final class SnsOutboxPublisher implements EventDispatcher {
-
     private static final Logger log = LoggerFactory.getLogger(SnsOutboxPublisher.class);
     private static final Pattern CORRELATION = Pattern.compile("\"correlationId\":\"([0-9a-f-]+)\"");
     private static final int PAGE = 25;
@@ -76,7 +60,6 @@ public final class SnsOutboxPublisher implements EventDispatcher {
         }
     }
 
-    /** Publica todos los eventos pendientes. Devuelve cuántos se publicaron. */
     public int relayPending() {
         int published = 0;
         Map<String, AttributeValue> startKey = null;
@@ -101,7 +84,6 @@ public final class SnsOutboxPublisher implements EventDispatcher {
         return published;
     }
 
-    /** Ejecuta {@link #relayPending} periódicamente. Un fallo se registra y se reintenta en la siguiente vuelta. */
     public void start(ScheduledExecutorService scheduler, int intervalSeconds) {
         scheduler.scheduleWithFixedDelay(() -> {
             try {

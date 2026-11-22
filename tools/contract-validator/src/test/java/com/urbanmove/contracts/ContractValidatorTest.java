@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * que el validador rechaza eventos mal formados.
  */
 class ContractValidatorTest {
-
     static final Set<String> EXPECTED_EVENTS = Set.of(
             "UserRegistered", "VehiclePurchased", "VehicleReserved", "ReservationCancelled", "ReservationExpired",
             "RideStarted", "RideFinished", "VehicleBatteryLow", "VehicleWithdrawnForMaintenance",
@@ -64,8 +63,6 @@ class ContractValidatorTest {
         return (ObjectNode) event.get("payload");
     }
 
-    // ------------------------------------------------------------------ catálogo cerrado
-
     @Test
     void catalogHasExactlyThe13OfficialEvents() {
         assertEquals(EXPECTED_EVENTS, Set.copyOf(validator.knownEventTypes()));
@@ -98,15 +95,11 @@ class ContractValidatorTest {
         });
     }
 
-    // ------------------------------------------------------------------ ejemplos válidos
-
     @ParameterizedTest
     @MethodSource("eventTypes")
     void examplesAreValid(String eventType) throws IOException {
         assertEquals(List.of(), validator.validate(example(eventType)));
     }
-
-    // ------------------------------------------------------------------ casos inválidos
 
     @Test
     void missingCorrelationIdIsRejected() throws IOException {
@@ -153,8 +146,6 @@ class ContractValidatorTest {
     void rideWithoutReservationIsAllowed() throws IOException {
         assertEquals(List.of(), validator.validate(mutated("RideStarted", e -> payload(e).putNull("reservationId"))));
     }
-
-    // ------------------------------------------------------------------ línea de comandos
 
     @Test
     void cliValidatesJsonlFiles(@TempDir Path tmp) throws IOException {

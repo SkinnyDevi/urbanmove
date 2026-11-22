@@ -15,8 +15,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+/** Lectura de la semilla de zonas. */
 class JsonZoneSeedSourceTest {
-
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private static List<Zone> load(String json) {

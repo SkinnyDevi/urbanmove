@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+/** Reglas de la zona y de sus identificadores. */
 class ZoneTest {
-
     private static final GeoPoint CENTER = new GeoPoint(28.07, -15.45);
 
     @Test

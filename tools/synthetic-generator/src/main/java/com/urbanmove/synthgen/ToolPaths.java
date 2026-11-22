@@ -4,9 +4,11 @@ import com.urbanmove.contracts.ContractsLocator;
 
 import java.nio.file.Path;
 
-/** Dónde están las cosas del generador, buscando la raíz del repo hacia arriba desde la carpeta actual. */
+/**
+ * Dónde están las cosas del generador, buscando la raíz del repo hacia arriba desde la carpeta
+ * actual.
+ */
 public final class ToolPaths {
-
     private ToolPaths() {
     }
 

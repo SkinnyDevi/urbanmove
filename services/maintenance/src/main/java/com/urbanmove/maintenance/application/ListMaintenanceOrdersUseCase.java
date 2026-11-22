@@ -7,7 +7,6 @@ import java.util.Objects;
 
 /** Caso de uso: la bandeja de órdenes de la app de mantenimiento. */
 public final class ListMaintenanceOrdersUseCase {
-
     private final MaintenanceOrderReader reader;
 
     public ListMaintenanceOrdersUseCase(MaintenanceOrderReader reader) {

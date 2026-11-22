@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 /** Construye summary.json: cuántos eventos, viajes, reservas, averías, déficits... */
 public final class SummaryBuilder {
-
     private static final JsonNodeFactory JSON = JsonNodeFactory.instance;
 
     private SummaryBuilder() {
