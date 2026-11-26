@@ -31,7 +31,7 @@
     },
     "eventType": {
       "type": "string",
-      "description": "Uno de los 13 eventos del catálogo cerrado",
+      "description": "Uno de los 14 eventos del catálogo cerrado",
       "enum": [
         "UserRegistered",
         "VehiclePurchased",
@@ -45,7 +45,8 @@
         "VehicleReturnedToService",
         "DemandHotspotDetected",
         "RelocationOrderCreated",
-        "RelocationOrderCompleted"
+        "RelocationOrderCompleted",
+        "VehicleRetired"
       ]
     },
     "schemaVersion": {

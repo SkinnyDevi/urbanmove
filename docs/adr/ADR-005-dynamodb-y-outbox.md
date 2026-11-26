@@ -17,6 +17,8 @@ Además, un servicio que guarda un cambio y publica un evento tiene un problema 
    - `rowVersion = :expected` en la orden → bloqueo optimista.
 4. **Bandeja de salida (outbox)**: los eventos se guardan en la **misma transacción** que el cambio. Después se publican en SNS y se borran. Si SNS falla, un proceso periódico (cada 5 s) los reintenta.
 
+`relocation` usa el mismo diseño. Su candado es `ROUTE#<zonaDestino>#<tipo>#ACTIVE`: como mucho una orden activa por zona destino y tipo de vehículo, para que varios `DemandHotspotDetected` seguidos no creen órdenes repetidas. La idempotencia del hotspot usa su `eventId` como clave. El índice `gsi1` ordena las órdenes por `dueAt` (plazo), así la bandeja del técnico muestra primero las más urgentes.
+
 En el lado consumidor (`availability`) se aplica la misma idea: la marca `PROCESSED#eventId` se guarda en la **misma transacción** que el cambio del vehículo, con `attribute_not_exists`. Así un evento repetido no se aplica dos veces aunque llegue a la vez a dos réplicas.
 
 ## Consecuencias

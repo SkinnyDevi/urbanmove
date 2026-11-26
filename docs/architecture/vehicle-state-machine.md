@@ -17,7 +17,7 @@ El catálogo cerrado de 13 eventos no tiene ningún evento para `CHARGING`, `REP
 |---|---|---|
 | `AVAILABLE`, `RESERVED`, `IN_USE`, `LOW_BATTERY`, `WITHDRAWN` | **availability** | Es el estado operativo que ve el resto del sistema: lo que se puede reservar y dónde. Cambia con eventos del catálogo. |
 | `CHARGING`, `REPAIRING`, `READY_FOR_SERVICE` | **maintenance** | Pasan dentro del taller. Son estados de la orden de mantenimiento. Para el resto del sistema el vehículo está `WITHDRAWN` hasta que llega `VehicleReturnedToService`. |
-| `RETIRED` | **inventory** | Es una baja administrativa del activo. availability también lo refleja para no ofrecer el vehículo nunca más (ver decisión abierta 1). |
+| `RETIRED` | **inventory** | Es una baja administrativa del activo. availability también lo refleja al recibir `VehicleRetired` (ADR-006) para no ofrecer el vehículo nunca más. |
 
 Así se usan los 9 estados oficiales, no se inventa ningún evento y cada servicio valida solo lo suyo (base de datos por servicio, ADR-001). La decisión está recogida en [ADR-004](../adr/ADR-004-propiedad-estado-vehiculo.md).
 
@@ -71,7 +71,7 @@ stateDiagram-v2
 | `AVAILABLE`, `LOW_BATTERY` | `withdrawForMaintenance` | `WITHDRAWN` | `VehicleWithdrawnForMaintenance` | maintenance |
 | `WITHDRAWN` | `returnToService` | `AVAILABLE` en la zona del evento; borra el aviso de batería | `VehicleReturnedToService` | maintenance |
 | `AVAILABLE`, `LOW_BATTERY` | `relocate` | sin cambio de estado; cambia de zona | `RelocationOrderCompleted` | relocation |
-| `WITHDRAWN` | `retire` | `RETIRED` | ninguno en el catálogo (decisión abierta 1) | inventory |
+| `WITHDRAWN` | `retire` | `RETIRED` | `VehicleRetired` (evento 14, ADR-006) | inventory |
 
 Todo lo demás es ilegal. Ejemplos importantes:
 
@@ -124,7 +124,7 @@ Ilegales importantes: no se cancela una orden con el vehículo ya retirado, y no
 
 ## Decisiones abiertas (para revisar en grupo)
 
-1. **`RETIRED` no tiene evento.** inventory da de baja el activo, pero ningún evento del catálogo se lo dice a availability. Opciones: (a) ampliar el catálogo con `VehicleRetired` (requiere aprobación de todos); (b) que availability lo deje en `WITHDRAWN` para siempre, que en la práctica tampoco se puede reservar. **Propuesta: (a)**, porque `dm_fleet` necesita contar los `RETIRED`.
+1. ~~**`RETIRED` no tiene evento.**~~ **Resuelta en [ADR-006](../adr/ADR-006-evento-vehicle-retired.md)** con `VehicleRetired` (pendiente de aprobación del equipo). inventory da de baja el activo, pero ningún evento del catálogo se lo dice a availability. Opciones: (a) ampliar el catálogo con `VehicleRetired` (requiere aprobación de todos); (b) que availability lo deje en `WITHDRAWN` para siempre, que en la práctica tampoco se puede reservar. **Propuesta: (a)**, porque `dm_fleet` necesita contar los `RETIRED`.
 2. **¿Quién evita la doble reserva?** La máquina de estados rechaza reservar un vehículo `RESERVED`, pero eso solo protege dentro de availability. Si reservations crea la reserva y availability se entera después por el evento, dos usuarios pueden reservar a la vez. Hay que acordarlo con el bloque A: o reservations pregunta a availability de forma síncrona con bloqueo optimista (`version`, AGENTS.md 5.5), o reservations mantiene su propia copia de disponibilidad.
 3. **Eventos fuera de orden.** SQS no garantiza el orden: puede llegar `RideStarted` antes que `VehicleReserved`. Con la tabla actual, `AVAILABLE → startRide` es legal, así que funciona; pero un `VehicleReserved` que llega tarde sobre un vehículo `IN_USE` sería rechazado. **Implementado así en availability:** el rechazo se registra (log `WARN` con `correlationId`, estado y acción), el evento se marca como procesado y se hace ACK, sin reintentar ni mandarlo a la DLQ. En cambio, un evento de un vehículo que availability todavía no conoce sí se reintenta y, tras 3 intentos, va a la DLQ.
 4. **Vehículos nuevos.** `VehiclePurchased` deja el vehículo `AVAILABLE` en su zona inicial (implementado). La flota inicial de la demo son los 100 vehículos del generador (`seed/vehicles.json`), que availability carga al arrancar si no existen. Si se quiere una revisión antes de la primera salida, entraría como `WITHDRAWN` con una orden de tipo `INSPECTION`.

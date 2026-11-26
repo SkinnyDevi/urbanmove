@@ -26,14 +26,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests de contrato: comprueban que los 13 eventos están completos, que los ejemplos son válidos y
+ * Tests de contrato: comprueban que los 14 eventos están completos, que los ejemplos son válidos y
  * que el validador rechaza eventos mal formados.
  */
 class ContractValidatorTest {
     static final Set<String> EXPECTED_EVENTS = Set.of(
             "UserRegistered", "VehiclePurchased", "VehicleReserved", "ReservationCancelled", "ReservationExpired",
             "RideStarted", "RideFinished", "VehicleBatteryLow", "VehicleWithdrawnForMaintenance",
-            "VehicleReturnedToService", "DemandHotspotDetected", "RelocationOrderCreated", "RelocationOrderCompleted");
+            "VehicleReturnedToService", "DemandHotspotDetected", "RelocationOrderCreated", "RelocationOrderCompleted",
+            "VehicleRetired");
 
     static final ObjectMapper MAPPER = new ObjectMapper();
     static ContractValidator validator;
@@ -64,7 +65,7 @@ class ContractValidatorTest {
     }
 
     @Test
-    void catalogHasExactlyThe13OfficialEvents() {
+    void catalogHasExactlyThe14OfficialEvents() {
         assertEquals(EXPECTED_EVENTS, Set.copyOf(validator.knownEventTypes()));
     }
 

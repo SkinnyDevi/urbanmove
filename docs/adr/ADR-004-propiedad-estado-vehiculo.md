@@ -14,7 +14,7 @@ Cada parte del ciclo de vida tiene un único dueño:
 |---|---|---|
 | `AVAILABLE`, `RESERVED`, `IN_USE`, `LOW_BATTERY`, `WITHDRAWN` | **availability** | Al consumir eventos del catálogo (`VehicleReserved`, `RideStarted`, `VehicleWithdrawnForMaintenance`…) |
 | `CHARGING`, `REPAIRING`, `READY_FOR_SERVICE` | **maintenance**, como estados de la orden de mantenimiento | Por las acciones del técnico en la app (`POST /maintenance-orders/{id}/...`) |
-| `RETIRED` | **inventory** (baja administrativa del activo) | Por la operación de baja; ver decisión abierta 1 del documento de detalle |
+| `RETIRED` | **inventory** (baja administrativa del activo) | Por `POST /vehicles/{id}/retire`, que publica `VehicleRetired` (ADR-006) |
 
 Para el resto del sistema, un vehículo en el taller está `WITHDRAWN` hasta que llega `VehicleReturnedToService`.
 
@@ -26,4 +26,4 @@ Ambas máquinas de estados se implementan con el **patrón State** (`AGENTS.md` 
 - Cada servicio valida solo sus transiciones, en su propia base de datos.
 - Los estados del taller no viajan por el bus: `history` y los data marts ven la retirada y la vuelta (`VehicleWithdrawnForMaintenance` → `VehicleReturnedToService`), con el trabajo realizado y el tiempo fuera de servicio, que bastan para el MTTR de `dm_maintenance`.
 - `dm_fleet` no puede contar por separado los vehículos `CHARGING` y `REPAIRING` a partir de los eventos. Si hace falta, el dashboard los consulta a maintenance o se amplía el catálogo con aprobación de todos.
-- `RETIRED` necesita un evento (`VehicleRetired`) para que availability y los data marts se enteren. Está propuesto como decisión abierta.
+- `RETIRED` se comunica con el evento 14, `VehicleRetired`: availability y los data marts se enteran por el bus. Ver [ADR-006](ADR-006-evento-vehicle-retired.md), pendiente de aprobación del equipo.

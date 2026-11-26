@@ -61,6 +61,7 @@
           "minimum": 0
         },
         "currency": {
+          "type": "string",
           "const": "EUR"
         }
       }

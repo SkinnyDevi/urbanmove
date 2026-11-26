@@ -112,6 +112,21 @@ class ApplyVehicleEventUseCaseTest {
     }
 
     @Test
+    void aRetiredVehicleIsNeverOfferedAgain() {
+        purchase(VEHICLE, TAFIRA);
+        IncomingEvent retired = event("VehicleRetired", new VehicleEvent.Retired(VEHICLE));
+
+        assertEquals(EventOutcome.REJECTED, apply.execute(retired), "solo se da de baja desde WITHDRAWN");
+        apply.execute(event("VehicleWithdrawnForMaintenance", new VehicleEvent.WithdrawnForMaintenance(VEHICLE)));
+        assertEquals(EventOutcome.APPLIED, apply.execute(event("VehicleRetired", new VehicleEvent.Retired(VEHICLE))));
+
+        assertEquals(VehicleStatus.RETIRED, vehicle().status());
+        assertFalse(vehicle().isReservable());
+        assertEquals(EventOutcome.REJECTED,
+                apply.execute(event("VehicleReturnedToService", new VehicleEvent.ReturnedToService(VEHICLE, MESA))));
+    }
+
+    @Test
     void anEventForAnUnknownVehicleFailsSoSqsRetriesIt() {
         IncomingEvent reserved = event("VehicleReserved", new VehicleEvent.Reserved(VEHICLE));
 

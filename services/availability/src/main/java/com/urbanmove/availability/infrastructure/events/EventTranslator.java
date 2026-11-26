@@ -63,6 +63,7 @@ public final class EventTranslator {
             case "VehicleWithdrawnForMaintenance" -> new VehicleEvent.WithdrawnForMaintenance(vehicle(p));
             case "VehicleReturnedToService" -> new VehicleEvent.ReturnedToService(vehicle(p), zone(p, "zoneId"));
             case "RelocationOrderCompleted" -> new VehicleEvent.Relocated(vehicleList(p), zone(p, "targetZoneId"));
+            case "VehicleRetired" -> new VehicleEvent.Retired(vehicle(p));
             default -> null;
         };
         return Optional.ofNullable(event);

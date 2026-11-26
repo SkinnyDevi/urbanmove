@@ -30,16 +30,34 @@ services:
   # DynamoDB, SNS, SQS, S3, Lambda y EventBridge en local.
   # 4.14.0: la misma versión que la práctica 4. Las versiones nuevas (2026.x) piden cuenta y LOCALSTACK_AUTH_TOKEN.
   # Al arrancar, init-aws.sh crea el tópico SNS y una cola SQS (con su DLQ) por consumidor.
+  # Compila las Lambdas Java (lambdas/*/target/*.jar) antes de que LocalStack las despliegue.
+  # Termina en cuanto acaba; la caché de Maven se guarda en un volumen para que la segunda vez tarde segundos.
+  lambda-build:
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /build
+    command: ["mvn", "-q", "-B", "-DskipTests", "package"]
+    volumes:
+      - ./lambdas:/build
+      - maven-cache:/root/.m2
+
   localstack:
     image: localstack/localstack:4.14.0
     environment:
       SERVICES: dynamodb,sns,sqs,s3,lambda,events,logs
       AWS_DEFAULT_REGION: us-east-1
+      # Las Lambdas corren en contenedores propios; en esta red pueden llamar a http://maintenance:8080
+      LAMBDA_DOCKER_NETWORK: urbanmove-net
+      # init-aws.sh lo pasa a la Lambda maintenance-detection para firmar su JWT de servicio
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
     ports:
       - "4566:4566"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infra/local/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
+      - ./lambdas/maintenance-detection/target:/opt/lambdas/maintenance-detection:ro
+    depends_on:
+      lambda-build:
+        condition: service_completed_successfully
     healthcheck:
       # "healthy" solo cuando init-aws.sh ha terminado (tópico y colas creados)
       test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/init/ready | grep -Eq '\"completed\": ?true'"]
@@ -87,6 +105,29 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  inventory:
+    build:
+      context: ./services
+      dockerfile: inventory/Dockerfile
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      # Credenciales ficticias que acepta LocalStack (no son secretos). En ECS se usa el rol LabRole.
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DYNAMODB_TABLE: urbanmove-inventory
+      DYNAMODB_CREATE_TABLE: "true"      # en AWS la tabla la crea Terraform
+      EVENTS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:urbanmove-domain-events
+      EVENTS_QUEUE_URL: http://localstack:4566/000000000000/inventory-queue
+      FLEET_SEED_FILE: classpath:seed/vehicles.json   # los mismos 100 vehículos que availability
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+    ports:
+      - "8081:8080"
+    depends_on:
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
   maintenance:
     build:
       context: ./services
@@ -108,5 +149,33 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  relocation:
+    build:
+      context: ./services
+      dockerfile: relocation/Dockerfile
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      # Credenciales ficticias que acepta LocalStack (no son secretos). En ECS se usa el rol LabRole.
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DYNAMODB_TABLE: urbanmove-relocation
+      DYNAMODB_CREATE_TABLE: "true"      # en AWS la tabla la crea Terraform
+      EVENTS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:urbanmove-domain-events
+      HOTSPOT_QUEUE_URL: http://localstack:4566/000000000000/relocation-queue
+      ORDER_DEADLINE_MINUTES: "120"
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+    ports:
+      - "8085:8080"
+    depends_on:
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    name: urbanmove-net
+
 volumes:
   postgres-data:
+  maven-cache:

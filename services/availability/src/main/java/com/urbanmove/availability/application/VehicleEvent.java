@@ -37,6 +37,9 @@ public sealed interface VehicleEvent {
     record ReturnedToService(VehicleId vehicleId, ZoneId zone) implements VehicleEvent {
     }
 
+    record Retired(VehicleId vehicleId) implements VehicleEvent {
+    }
+
     record Relocated(List<VehicleId> vehicleIds, ZoneId targetZone) implements VehicleEvent {
         public Relocated {
             vehicleIds = List.copyOf(vehicleIds);

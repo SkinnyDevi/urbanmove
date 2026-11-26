@@ -36,15 +36,18 @@ Necesitas Docker y Java 21 (IntelliJ trae Maven).
 cp .env.example .env            # rellena las contraseñas y JWT_SECRET (nunca se sube al repo)
 docker compose up -d --build
 docker compose ps               # todos los servicios deben acabar en "healthy"
+curl localhost:8081/health      # servicio inventory
 curl localhost:8082/health      # servicio availability
 curl localhost:8083/health      # servicio zones
 curl localhost:8084/health      # servicio maintenance
+curl localhost:8085/health      # servicio relocation
 ```
 
 Tests:
 
 ```bash
 cd services && mvn test         # microservicios (los de integración necesitan Docker)
+cd lambdas && mvn test          # Lambdas Java (maintenance-detection)
 cd tools && mvn test            # contratos, generador
 ```
 
@@ -53,8 +56,9 @@ cd tools && mvn test            # contratos, generador
 | Documento | Qué explica |
 |---|---|
 | [`docs/contracts/openapi/`](docs/contracts/openapi/README.md) | Contratos REST (OpenAPI 3.1) |
-| [`docs/contracts/asyncapi/`](docs/contracts/asyncapi/README.md) | Los 13 eventos de dominio y su envelope |
+| [`docs/contracts/asyncapi/`](docs/contracts/asyncapi/README.md) | Los 14 eventos de dominio (13 del enunciado + `VehicleRetired`, ADR-006) y su envelope |
 | [`docs/architecture/vehicle-state-machine.md`](docs/architecture/vehicle-state-machine.md) | Estados del vehículo: qué evento provoca cada cambio y qué servicio lo valida |
+| [`docs/architecture/maintenance-detection.md`](docs/architecture/maintenance-detection.md) | Lambda que abre sola las órdenes por batería baja, y cómo reprocesar su DLQ |
 | [`docs/adr/`](docs/adr) | Decisiones de arquitectura |
 | [`docs/practicas-aws.md`](docs/practicas-aws.md) | Qué práctica de clase se usa en cada parte del proyecto |
 

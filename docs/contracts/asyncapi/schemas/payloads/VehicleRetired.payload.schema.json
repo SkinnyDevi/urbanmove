@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleRetired · payload",
+  "description": "Baja definitiva del activo; availability lo pasa a RETIRED y deja de ofrecerlo para siempre.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "vehicleId",
+    "vehicleType",
+    "reason"
+  ],
+  "properties": {
+    "vehicleId": {
+      "$ref": "../common.schema.json#/$defs/vehicleId"
+    },
+    "vehicleType": {
+      "$ref": "../common.schema.json#/$defs/vehicleType"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo de la baja",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  }
+}

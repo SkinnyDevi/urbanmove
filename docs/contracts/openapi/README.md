@@ -39,5 +39,5 @@ mvn -pl contract-validator test
 ## Decisiones abiertas
 
 1. **Doble reserva** (con el bloque A). availability solo es de lectura por REST. Si reservations debe bloquear el vehículo de forma síncrona, se añadirá una operación en `availability.yaml` con bloqueo optimista.
-2. **Identidad de las Lambdas.** `maintenance-detection` llama a `POST /maintenance-orders`. Necesita un JWT de servicio; el formato lo decide el bloque A junto con el de usuario.
+2. **Identidad de las Lambdas.** `maintenance-detection` llama a `POST /maintenance-orders`. Necesita un JWT de servicio; el formato lo decide el bloque A junto con el de usuario. **Provisional:** la Lambda firma con `JWT_SECRET` un token `sub = svc-maintenance-detection`, `roles = [admin]` (ver `docs/architecture/maintenance-detection.md`).
 3. **Puertos.** Los de la tabla son una propuesta para el `docker-compose.yml`.

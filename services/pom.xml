@@ -22,7 +22,9 @@
 
   <modules>
     <module>availability</module>
+    <module>inventory</module>
     <module>maintenance</module>
+    <module>relocation</module>
     <module>zones</module>
   </modules>
 

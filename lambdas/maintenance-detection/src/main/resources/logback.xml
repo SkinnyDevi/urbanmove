@@ -1,0 +1,12 @@
+<!-- Logs en JSON por la salida estándar (los recoge CloudWatch Logs). Formato: AGENTS.md 6.2 -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="com.urbanmove.maintenancedetection.infrastructure.logging.JsonLogEncoder">
+      <service>maintenance-detection-lambda</service>
+    </encoder>
+  </appender>
+
+  <root level="${LOG_LEVEL:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

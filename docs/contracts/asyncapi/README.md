@@ -2,7 +2,7 @@
 
 Responsable: **bloque C**. Estado: **BORRADOR v1.0.0, pendiente de revisión por el equipo.**
 
-Este directorio es usado para los 13 eventos de dominio de UrbanMove (`AGENTS.md`, secciones 3.2 y 3.3). Ningún servicio ni Lambda debe publicar o consumir un evento sin que su contrato esté aquí.
+Este directorio es usado para los 14 eventos de dominio de UrbanMove (`AGENTS.md`, secciones 3.2 y 3.3). Ningún servicio ni Lambda debe publicar o consumir un evento sin que su contrato esté aquí.
 
 ## Estructura
 
@@ -48,6 +48,7 @@ Todos los eventos llegan a `analytics-ingestion` (Data Lake). El resto de consum
 | `DemandHotspotDetected` | `urbanmove.relocation-engine` | relocation, notifications, analytics-ingestion | La Lambda relocation-engine detecta déficit con dm_demand y propone origen y cantidad. |
 | `RelocationOrderCreated` | `urbanmove.relocation` | notifications, history, analytics-ingestion | El servicio relocation crea la orden a partir del hotspot. |
 | `RelocationOrderCompleted` | `urbanmove.relocation` | availability, history, notifications, analytics-ingestion | Orden completada; availability actualiza la zona de los vehículos movidos. |
+| `VehicleRetired` | `urbanmove.inventory` | availability, history, analytics-ingestion | **Evento 14, pendiente de aprobación del equipo** (ADR-006). Baja definitiva; availability lo pasa a RETIRED. |
 
 ## Cómo validar
 
@@ -72,6 +73,6 @@ npx @asyncapi/cli validate docs/contracts/asyncapi/asyncapi.yaml
 ## Decisiones abiertas (para revisar en grupo)
 
 1. **¿Quién publica `ReservationExpired`?** Propuesta: la Lambda `reservation-expiration` se despierta con EventBridge, pide al servicio `reservations` que expire las reservas caducadas, y es `reservations` quien publica el evento. Así ninguna Lambda escribe en la base de datos de otro servicio (ADR-001). El `AGENTS.md` sugiere que la emite la Lambda: el bloque A decide.
-2. **Transiciones sin evento en el catálogo.** El enunciado solo define 13 eventos, así que no hay evento para `CHARGING`, `REPAIRING`, `READY_FOR_SERVICE`, `RETIRED`, la confirmación de una reserva ni las incidencias. Propuesta: estas transiciones se gestionan dentro de `maintenance`/`inventory` vía REST, y el tiempo fuera de servicio (MTTR) se calcula con `VehicleWithdrawnForMaintenance` → `VehicleReturnedToService`. Si hacen falta para el historial o los data marts, se amplía el catálogo con aprobación del grupo.
+2. **Transiciones sin evento en el catálogo.** El enunciado solo define 13 eventos, así que no hay evento para `CHARGING`, `REPAIRING`, `READY_FOR_SERVICE`, la confirmación de una reserva ni las incidencias. Propuesta: estas transiciones se gestionan dentro de `maintenance`/`inventory` vía REST, y el tiempo fuera de servicio (MTTR) se calcula con `VehicleWithdrawnForMaintenance` → `VehicleReturnedToService`. Si hacen falta para el historial o los data marts, se amplía el catálogo con aprobación del grupo. `RETIRED` ya tiene evento propio: `VehicleRetired` (ADR-006).
 3. **Un topic SNS o varios.** Propuesta: un único topic `urbanmove-domain-events` con filtros por `eventType` en cada suscripción SQS. Es más sencillo en Terraform. Lo decide el bloque D en el ADR-002. **En local ya funciona así**: `infra/local/localstack/init-aws.sh` crea el tópico y una cola con DLQ por consumidor, con los filtros de la tabla de arriba.
 4. **Datos personales en el Data Lake.** `UserRegistered` incluye email y nombre. Propuesta: la capa *trusted* los seudonimiza (hash) antes de pasar a *curated*.

@@ -34,7 +34,7 @@ class EventTranslatorContractTest {
     static Stream<String> consumedEvents() {
         return Stream.of("VehiclePurchased", "VehicleReserved", "ReservationCancelled", "ReservationExpired",
                 "RideStarted", "RideFinished", "VehicleBatteryLow", "VehicleWithdrawnForMaintenance",
-                "VehicleReturnedToService", "RelocationOrderCompleted");
+                "VehicleReturnedToService", "RelocationOrderCompleted", "VehicleRetired");
     }
 
     private static String read(String eventType) throws Exception {

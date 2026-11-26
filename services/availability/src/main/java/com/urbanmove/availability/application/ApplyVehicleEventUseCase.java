@@ -81,6 +81,7 @@ public final class ApplyVehicleEventUseCase {
             case VehicleEvent.BatteryLow e -> update(e.vehicleId(), VehicleAvailability::reportLowBattery);
             case VehicleEvent.WithdrawnForMaintenance e -> update(e.vehicleId(), VehicleAvailability::withdrawForMaintenance);
             case VehicleEvent.ReturnedToService e -> update(e.vehicleId(), v -> v.returnToService(e.zone()));
+            case VehicleEvent.Retired e -> update(e.vehicleId(), VehicleAvailability::retire);
             case VehicleEvent.Relocated e -> {
                 List<VehicleChange> all = new ArrayList<>();
                 for (VehicleId id : e.vehicleIds()) {

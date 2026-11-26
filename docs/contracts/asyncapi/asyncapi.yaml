@@ -3,7 +3,7 @@ asyncapi: 3.0.0
 info:
   title: UrbanMove · eventos de dominio
   version: 1.0.0
-  description: 'Catálogo cerrado de los 13 eventos de dominio. Bus: SNS + SQS con DLQ (ADR-002). Todos los mensajes
+  description: 'Catálogo cerrado de los 14 eventos de dominio. Bus: SNS + SQS con DLQ (ADR-002). Todos los mensajes
     usan el envelope común de schemas/envelope.schema.json.'
 defaultContentType: application/json
 channels:
@@ -39,6 +39,8 @@ channels:
         $ref: '#/components/messages/RelocationOrderCreated'
       RelocationOrderCompleted:
         $ref: '#/components/messages/RelocationOrderCompleted'
+      VehicleRetired:
+        $ref: '#/components/messages/VehicleRetired'
 operations:
   publishUserRegistered:
     action: send
@@ -131,6 +133,13 @@ operations:
     summary: urbanmove.relocation publica RelocationOrderCompleted
     messages:
     - $ref: '#/channels/domainEvents/messages/RelocationOrderCompleted'
+  publishVehicleRetired:
+    action: send
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: urbanmove.inventory publica VehicleRetired
+    messages:
+    - $ref: '#/channels/domainEvents/messages/VehicleRetired'
 components:
   messages:
     UserRegistered:
@@ -300,4 +309,16 @@ components:
       - availability
       - history
       - notifications
+      - analytics-ingestion
+    VehicleRetired:
+      name: VehicleRetired
+      title: VehicleRetired
+      summary: Baja definitiva del activo; availability lo pasa a RETIRED y deja de ofrecerlo para siempre.
+      contentType: application/json
+      payload:
+        $ref: ./schemas/messages/VehicleRetired.message.schema.json
+      x-producer: urbanmove.inventory
+      x-consumers:
+      - availability
+      - history
       - analytics-ingestion

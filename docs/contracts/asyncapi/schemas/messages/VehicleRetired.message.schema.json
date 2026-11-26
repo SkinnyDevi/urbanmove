@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VehicleRetired · mensaje completo (envelope + payload)",
+  "allOf": [
+    {
+      "$ref": "../envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "eventType": {
+          "const": "VehicleRetired"
+        },
+        "source": {
+          "const": "urbanmove.inventory"
+        },
+        "payload": {
+          "$ref": "../payloads/VehicleRetired.payload.schema.json"
+        }
+      }
+    }
+  ]
+}
